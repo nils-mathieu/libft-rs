@@ -6,6 +6,7 @@ edition = "2021"
 description = "My personal library for 42 school projects."
 
 [features]
+default = ["panic-handler"]
 panic-handler = []
 
 [dependencies]

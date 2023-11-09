@@ -1,10 +1,46 @@
-use core::ffi::c_void;
+use core::ffi::{c_int, c_void};
 use core::fmt;
 use core::mem::MaybeUninit;
 
-use crate::{Errno, Fd, Result};
+use bitflags::bitflags;
+
+use crate::{CharStar, Errno, Fd, File, Result};
+
+bitflags! {
+    /// Flags that can be passed to [`Fd::open`].
+    ///
+    /// Describes how the file should be opened.
+    pub struct OpenFlags: c_int {
+        /// The file should be opened for reading only.
+        const READ_ONLY = libc::O_RDONLY;
+        /// The file should be opened for writing only.
+        const WRITE_ONLY = libc::O_WRONLY;
+        /// The file should be opened for reading and writing.
+        const READ_WRITE = libc::O_RDWR;
+        /// The file should be created if it doesn't exist.
+        const CREATE = libc::O_CREAT;
+        /// The file should be truncated to zero size if it already exists.
+        const TRUNCATE = libc::O_TRUNC;
+        /// The file should be appended to if it already exists.
+        const APPEND = libc::O_APPEND;
+    }
+}
 
 impl Fd {
+    /// Opens a file for reading only.
+    ///
+    /// # Returns
+    ///
+    /// A [`Fd`] instance representing the opened file.
+    pub fn open(path: &CharStar, flags: OpenFlags) -> Result<Self> {
+        let res = unsafe { libc::open(path.as_ptr(), flags.bits()) };
+        if res < 0 {
+            Err(Errno::last())
+        } else {
+            Ok(Self(res))
+        }
+    }
+
     /// Writes some amount of the provided buffer to the file descriptor.
     ///
     /// # Notes
@@ -109,6 +145,22 @@ impl Fd {
         } else {
             Ok(res as usize)
         }
+    }
+}
+
+impl File {
+    /// Opens a file for reading.
+    pub fn open(path: &CharStar) -> Result<Self> {
+        Fd::open(path, OpenFlags::READ_ONLY).map(Self)
+    }
+
+    /// Creates a new file for writing, truncating it if it already exists.
+    pub fn create(path: &CharStar) -> Result<Self> {
+        Fd::open(
+            path,
+            OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE,
+        )
+        .map(Self)
     }
 }
 

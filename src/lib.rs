@@ -9,12 +9,13 @@ pub mod charstar;
 pub use self::charstar::CharStar;
 
 pub mod fd;
-pub use self::fd::Fd;
+pub use self::fd::{Fd, File};
 
 mod errno;
 pub use self::errno::{Errno, Result};
 
 pub mod mmap;
+pub mod process;
 
 mod entry_point;
 
@@ -23,3 +24,5 @@ pub mod __private;
 
 #[cfg(feature = "panic-handler")]
 mod panic;
+#[cfg(feature = "panic-handler")]
+pub use self::panic::set_panic_handler;

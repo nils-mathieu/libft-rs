@@ -6,6 +6,7 @@ use core::ops::Deref;
 use crate::{Errno, Result};
 
 mod io;
+pub use self::io::*;
 
 /// A file descriptor.
 ///
