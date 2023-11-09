@@ -3,9 +3,10 @@
 #![no_std]
 #![feature(lang_items)]
 #![allow(internal_features)]
+#![feature(extern_types)]
 
-mod charstar;
-pub use self::charstar::*;
+pub mod charstar;
+pub use self::charstar::CharStar;
 
 mod entry_point;
 

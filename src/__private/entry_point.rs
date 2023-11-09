@@ -25,11 +25,11 @@ unsafe fn null_terminated_array_len(array: *const *const c_char) -> usize {
 /// entire program.
 pub unsafe fn call<F>(f: F, argv: *const *const c_char, envp: *const *const c_char) -> c_int
 where
-    F: FnOnce(&'static [CharStar<'static>], &'static [CharStar<'static>]) -> u8,
+    F: FnOnce(&'static [&'static CharStar], &'static [&'static CharStar]) -> u8,
 {
     let argc = null_terminated_array_len(argv);
-    let args = core::slice::from_raw_parts(argv as *const CharStar, argc);
+    let args = core::slice::from_raw_parts(argv as *const &CharStar, argc);
     let envc = null_terminated_array_len(envp);
-    let env = core::slice::from_raw_parts(envp as *const CharStar, envc);
+    let env = core::slice::from_raw_parts(envp as *const &CharStar, envc);
     f(args, env) as c_int
 }
