@@ -10,6 +10,9 @@ pub use self::io::*;
 
 mod net;
 
+mod poll;
+pub use self::poll::*;
+
 /// A file descriptor.
 ///
 /// # Notes
