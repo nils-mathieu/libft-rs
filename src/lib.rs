@@ -22,6 +22,9 @@ pub mod process;
 pub mod sync;
 pub use self::sync::mutex::Mutex;
 
+mod time;
+pub use self::time::*;
+
 mod entry_point;
 
 #[doc(hidden)]
