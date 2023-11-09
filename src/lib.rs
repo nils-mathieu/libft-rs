@@ -19,6 +19,9 @@ pub use self::errno::{Errno, Result};
 pub mod mmap;
 pub mod process;
 
+pub mod sync;
+pub use self::sync::mutex::Mutex;
+
 mod entry_point;
 
 #[doc(hidden)]
