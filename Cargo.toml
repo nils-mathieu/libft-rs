@@ -10,3 +10,4 @@ panic-handler = []
 
 [dependencies]
 libc = { version = "0.2", default-features = false }
+bitflags = "2"

@@ -14,6 +14,8 @@ pub use self::fd::Fd;
 mod errno;
 pub use self::errno::{Errno, Result};
 
+pub mod mmap;
+
 mod entry_point;
 
 #[doc(hidden)]
