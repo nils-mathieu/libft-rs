@@ -1,0 +1,12 @@
+[package]
+name = "ft"
+version = "0.1.0"
+authors = ["Nils Mahtieu <nmathieu@student.42.fr>"]
+edition = "2021"
+description = "My personal library for 42 school projects."
+
+[features]
+panic-handler = []
+
+[dependencies]
+libc = { version = "0.2", default-features = false }
