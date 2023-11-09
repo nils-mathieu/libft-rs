@@ -28,6 +28,9 @@ mod entry_point;
 pub mod __private;
 
 #[cfg(feature = "panic-handler")]
-mod panic;
+mod panic_handler;
 #[cfg(feature = "panic-handler")]
-pub use self::panic::set_panic_handler;
+pub use self::panic_handler::set_panic_handler;
+
+#[cfg(feature = "global-allocator")]
+mod global_allocator;

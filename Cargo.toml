@@ -7,6 +7,7 @@ description = "My personal library for 42 school projects."
 
 [features]
 panic-handler = []
+global-allocator = []
 
 [dependencies]
 libc = { version = "0.2", default-features = false }

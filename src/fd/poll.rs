@@ -42,6 +42,17 @@ pub struct PollFd {
     pub revents: PollFlags,
 }
 
+impl PollFd {
+    /// Creates a new [`PollFd`] instance.
+    pub const fn new(fd: Fd, events: PollFlags) -> Self {
+        Self {
+            fd,
+            events,
+            revents: PollFlags::empty(),
+        }
+    }
+}
+
 /// Waits for a collection of file descriptors to become ready.
 ///
 /// # Arguments
