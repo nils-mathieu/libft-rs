@@ -8,6 +8,8 @@ use crate::{Errno, Result};
 mod io;
 pub use self::io::*;
 
+mod net;
+
 /// A file descriptor.
 ///
 /// # Notes

@@ -11,6 +11,8 @@ pub use self::charstar::CharStar;
 pub mod fd;
 pub use self::fd::{Fd, File};
 
+pub mod net;
+
 mod errno;
 pub use self::errno::{Errno, Result};
 

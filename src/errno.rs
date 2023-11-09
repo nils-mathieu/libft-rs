@@ -25,6 +25,16 @@ impl Errno {
         unsafe { *libc::__error() = self.0 };
     }
 
+    /// Creates a new [`Errno`] instance from the provided raw value.
+    pub fn from_raw(raw: c_int) -> Self {
+        Self(raw)
+    }
+
+    /// Returns the raw value of this [`Errno`] instance.
+    pub fn to_raw(self) -> c_int {
+        self.0
+    }
+
     /// Writes a description of this error to the provided buffer.
     pub fn write_description(self, buf: &mut [MaybeUninit<u8>]) -> Option<&CharStar> {
         let ret = unsafe { libc::strerror_r(self.0, buf.as_mut_ptr().cast(), buf.len()) };
@@ -88,4 +98,6 @@ fn uninit_array<T, const N: usize>() -> [MaybeUninit<T>; N] {
 define_Errno_constants! {
     /// Indicates that no error occured.
     pub const SUCCESS = 0;
+    /// Indicates that an invalid argument was provided.
+    pub const INVAL = libc::EINVAL;
 }
