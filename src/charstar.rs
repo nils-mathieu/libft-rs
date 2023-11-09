@@ -61,14 +61,27 @@ impl CharStar {
         unsafe { *self.as_ptr() == 0 }
     }
 
-    /// Returns the length of the string.
+    /// Returns the length of the string, not including the terminating null byte.
     pub fn len(&self) -> usize {
         unsafe { libc::strlen(self.as_ptr()) }
+    }
+
+    /// Returns the length of the string, or `max` if the string is longer than `max`. The
+    /// terminating null byte is not included in the length.
+    pub fn len_bounded(&self, max: usize) -> usize {
+        unsafe { libc::strnlen(self.as_ptr(), max) }
     }
 
     /// Returns the bytes of the string, not including the terminating null byte.
     pub fn as_bytes(&self) -> &[u8] {
         let len = self.len();
+        unsafe { core::slice::from_raw_parts(self.as_ptr() as *const u8, len) }
+    }
+
+    /// Returns the bytes of the string, or the first `max` bytes if the string is longer than
+    /// `max`. The terminating null byte is not included in the returned slice.
+    pub fn as_bytes_bounded(&self, max: usize) -> &[u8] {
+        let len = self.len_bounded(max);
         unsafe { core::slice::from_raw_parts(self.as_ptr() as *const u8, len) }
     }
 
@@ -79,6 +92,12 @@ impl CharStar {
     /// This function fails with [`None`] if the string is not valid UTF-8.
     pub fn as_str(&self) -> Option<&str> {
         core::str::from_utf8(self.as_bytes()).ok()
+    }
+
+    /// Returns whether this [`CharStar`] starts with the provided prefix.
+    pub fn starts_with(&self, prefix: &[u8]) -> bool {
+        let len = self.as_bytes_bounded(prefix.len());
+        len == prefix
     }
 
     /// If this [`CharStar`] is not empty, returns the first byte of the string and a

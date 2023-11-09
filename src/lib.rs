@@ -2,8 +2,8 @@
 
 #![no_std]
 #![feature(lang_items)]
-#![allow(internal_features)]
 #![feature(extern_types)]
+#![allow(internal_features)]
 
 pub mod charstar;
 pub use self::charstar::CharStar;
