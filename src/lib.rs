@@ -8,6 +8,12 @@
 pub mod charstar;
 pub use self::charstar::CharStar;
 
+pub mod fd;
+pub use self::fd::Fd;
+
+mod errno;
+pub use self::errno::{Errno, Result};
+
 mod entry_point;
 
 #[doc(hidden)]
