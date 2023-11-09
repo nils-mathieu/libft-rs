@@ -116,16 +116,16 @@ impl Fd {
 /// occur.
 #[macro_export]
 macro_rules! printf {
-    ($($a:tt)*) => {
+    ($($a:tt)*) => {{
         let _ = $crate::Fd::STDOUT.write_fmt(format_args!($($a)*));
-    };
+    }};
 }
 
 /// Prints the provided message to the standard error stream, ignoring any errors that might
 /// occur.
 #[macro_export]
 macro_rules! eprintf {
-    ($($a:tt)*) => {
+    ($($a:tt)*) => {{
         let _ = $crate::Fd::STDERR.write_fmt(format_args!($($a)*));
-    };
+    }};
 }

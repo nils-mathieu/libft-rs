@@ -1,6 +1,9 @@
 //! Functions to work with file descriptors.
 
 use core::ffi::c_int;
+use core::ops::Deref;
+
+use crate::{Errno, Result};
 
 mod io;
 
@@ -31,5 +34,54 @@ impl Fd {
     /// Returns the raw file descriptor number represented by this [`Fd`] instance.
     pub const fn to_raw(self) -> c_int {
         self.0
+    }
+
+    /// Closes the file descriptor.
+    pub fn close(self) -> Result<()> {
+        let ret = unsafe { libc::close(self.0) };
+        if ret == 0 {
+            Ok(())
+        } else {
+            Err(Errno::last())
+        }
+    }
+}
+
+/// A RAII wrapper around a file descriptor.
+///
+/// When a [`File`] is dropped, the underlying file descriptor is automatically closed.
+pub struct File(Fd);
+
+impl File {
+    /// Creates a new [`File`] instance from the provided raw file descriptor.
+    pub fn from_raw(fd: c_int) -> Self {
+        Self(Fd::from_raw(fd))
+    }
+
+    /// Creates a new [`File`] instance from the provided [`Fd`] instance.
+    pub fn from_fd(fd: Fd) -> Self {
+        Self(fd)
+    }
+
+    /// Leaks this [`File`], returning the underlying [`Fd`] while making sure
+    /// that the file descriptor is not closed when this [`File`] is dropped.
+    pub fn leak(this: Self) -> Fd {
+        let fd = this.0;
+        core::mem::forget(this);
+        fd
+    }
+}
+
+impl Deref for File {
+    type Target = Fd;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl Drop for File {
+    fn drop(&mut self) {
+        let _ = self.0.close();
     }
 }
