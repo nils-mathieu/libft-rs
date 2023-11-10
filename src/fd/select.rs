@@ -1,5 +1,7 @@
 //! Ways to use the [`libc::select`] system call.
 
+use core::ffi::c_int;
+use core::ops::Range;
 use core::time::Duration;
 
 use crate::{Errno, Fd, Result};
@@ -54,6 +56,43 @@ impl FdSet {
     /// Clears the set.
     pub fn clear(&mut self) {
         unsafe { core::ptr::write_bytes(&mut self.0, 0x00, 1) }
+    }
+
+    /// Creates an iterator over the file descriptors of this set.
+    ///
+    /// # Arguments
+    ///
+    /// - `max` - The file descriptor of the file descriptor with the highest numerical value.
+    ///   This can also be used to selectively ignore the file descriptors with a higher number.
+    pub fn iter(&self, max: Fd) -> FdSetIter {
+        FdSetIter {
+            set: self,
+            range: 0..max.to_raw().wrapping_add(1),
+        }
+    }
+}
+
+/// An iterator over the file descriptors set in an [`FdSet`].
+pub struct FdSetIter<'a> {
+    set: &'a FdSet,
+    range: Range<c_int>,
+}
+
+impl<'a> Iterator for FdSetIter<'a> {
+    type Item = Fd;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            let fd = Fd::from_raw(self.range.next()?);
+            if self.set.contains(fd) {
+                break Some(fd);
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (_min, max) = self.range.size_hint();
+        (0, max)
     }
 }
 
@@ -115,7 +154,7 @@ pub fn select(
 
     let ret = unsafe {
         libc::select(
-            highest.to_raw() + 1,
+            highest.to_raw().wrapping_add(1),
             &mut read.0,
             &mut write.0,
             &mut error.0,
