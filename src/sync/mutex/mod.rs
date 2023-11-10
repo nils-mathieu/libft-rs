@@ -10,11 +10,6 @@ pub use self::pthread::*;
 mod noblock;
 pub use self::noblock::*;
 
-#[cfg(target_os = "linux")]
-mod futex;
-#[cfg(target_os = "linux")]
-pub use self::futex::*;
-
 /// A locking mechanism that a [`Mutex<T>`] may use to protect its inner value.
 ///
 /// # Safety
@@ -66,13 +61,8 @@ pub unsafe trait Lock {
     unsafe fn unlock(&self);
 }
 
-#[cfg(target_os = "macos")]
-pub type DefaultLock = PthreadLock;
-#[cfg(target_os = "linux")]
-pub type DefaultLock = FutexLock;
-
 /// Allows access to a shared value only once at a time.
-pub struct Mutex<T: ?Sized, L = DefaultLock> {
+pub struct Mutex<T: ?Sized, L = PthreadLock> {
     /// The lock used to protect the inner value.
     lock: L,
     /// The inner value.
