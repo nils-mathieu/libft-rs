@@ -47,7 +47,7 @@ impl Fd {
             libc::bind(
                 self.0,
                 addr.write_raw(&mut addr_storage),
-                addr_storage.ss_len as libc::socklen_t,
+                addr.family().len_of_sockaddr(),
             )
         };
 
@@ -108,7 +108,7 @@ impl Fd {
             libc::connect(
                 self.0,
                 addr.write_raw(&mut addr_storage),
-                addr_storage.ss_len as libc::socklen_t,
+                addr.family().len_of_sockaddr(),
             )
         };
 

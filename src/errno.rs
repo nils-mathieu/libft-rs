@@ -17,12 +17,28 @@ pub struct Errno(c_int);
 impl Errno {
     /// Returns the value of the `errno` global variable on the current thread.
     pub fn last() -> Self {
-        Self(unsafe { *libc::__error() })
+        #[cfg(target_os = "macos")]
+        {
+            Self(unsafe { *libc::__error() })
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            Self(unsafe { *libc::__errno_location() })
+        }
     }
 
     /// Sets the value of the `errno` global variable on the current thread.
     pub fn make_last(self) {
-        unsafe { *libc::__error() = self.0 };
+        #[cfg(target_os = "macos")]
+        unsafe {
+            *libc::__error() = self.0
+        }
+
+        #[cfg(target_os = "linux")]
+        unsafe {
+            *libc::__errno_location() = self.0
+        }
     }
 
     /// Creates a new [`Errno`] instance from the provided raw value.

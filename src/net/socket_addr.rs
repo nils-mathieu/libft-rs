@@ -1,6 +1,7 @@
 //! Defines the [`SocketAddr`] type.
 
 use core::ffi::c_int;
+use core::mem::size_of;
 
 use super::{AddrFlags, AddrInfo, SocketType};
 use crate::{CharStar, Result};
@@ -68,14 +69,24 @@ impl SocketAddr {
             Self::V4(ip, port) => {
                 let ret = unsafe { &mut *(storage as *mut _ as *mut libc::sockaddr_in) };
                 ret.sin_family = libc::AF_INET as _;
-                ret.sin_len = core::mem::size_of::<libc::sockaddr_in>() as _;
+
+                #[cfg(target_os = "macos")]
+                {
+                    ret.sin_len = core::mem::size_of::<libc::sockaddr_in>() as _;
+                }
+
                 ret.sin_addr.s_addr = u32::from_be_bytes(*ip);
                 ret.sin_port = port.to_be();
             }
             Self::V6(ip, port) => {
                 let ret = unsafe { &mut *(storage as *mut _ as *mut libc::sockaddr_in6) };
                 ret.sin6_family = libc::AF_INET6 as _;
-                ret.sin6_len = core::mem::size_of::<libc::sockaddr_in6>() as _;
+
+                #[cfg(target_os = "macos")]
+                {
+                    ret.sin6_len = core::mem::size_of::<libc::sockaddr_in6>() as _;
+                }
+
                 ret.sin6_addr.s6_addr = *ip;
                 ret.sin6_port = port.to_be();
             }
@@ -97,5 +108,13 @@ impl SocketAddrFamily {
     /// Returns the raw value of the socket address family.
     pub fn to_raw(self) -> c_int {
         self as _
+    }
+
+    /// Returns the size of a [`libc::sockaddr`] object with this family.
+    pub(crate) fn len_of_sockaddr(self) -> libc::socklen_t {
+        match self {
+            Self::V4 => size_of::<libc::sockaddr_in>() as _,
+            Self::V6 => size_of::<libc::sockaddr_in6>() as _,
+        }
     }
 }
