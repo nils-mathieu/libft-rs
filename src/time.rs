@@ -1,4 +1,6 @@
-use core::ops::Sub;
+//! Time-related types and functions.
+
+use core::ops::{Add, Sub};
 use core::time::Duration;
 
 /// A clock that measures time since some epoch, goes at some rate.
@@ -48,6 +50,13 @@ impl Instant {
 
     /// An [`Instant`] that represents the far future.
     pub const FAR_FUTURE: Instant = Instant(Duration::from_secs(u64::MAX));
+
+    /// Returns the amount of time elapsed since this instant was created.
+    ///
+    /// If the operation overflows, it saturates at `Instant::FAR_FUTURE`.
+    pub fn saturating_add(self, rhs: Duration) -> Instant {
+        Instant(self.0.saturating_add(rhs))
+    }
 }
 
 impl Sub for Instant {
@@ -55,5 +64,13 @@ impl Sub for Instant {
 
     fn sub(self, rhs: Self) -> Self::Output {
         self.0.saturating_sub(rhs.0)
+    }
+}
+
+impl Add<Duration> for Instant {
+    type Output = Instant;
+
+    fn add(self, rhs: Duration) -> Self::Output {
+        Instant(self.0 + rhs)
     }
 }

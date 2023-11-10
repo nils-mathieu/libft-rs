@@ -99,5 +99,9 @@ define_Errno_constants! {
     /// Indicates that no error occured.
     pub const SUCCESS = 0;
     /// Indicates that an invalid argument was provided.
-    pub const INVAL = libc::EINVAL;
+    pub const INVALID_VALUE = libc::EINVAL;
+    /// Indicates that the provided buffer was too small.
+    pub const WOULD_BLOCK = libc::EWOULDBLOCK;
+    /// Indicates that the operation was interrupted by a signal.
+    pub const INTERRUPTED = libc::EINTR;
 }
