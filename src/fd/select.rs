@@ -143,7 +143,7 @@ pub fn select(
             } else {
                 timeval = libc::timeval {
                     tv_sec: dur.as_secs() as i64,
-                    tv_usec: dur.subsec_micros() as i64,
+                    tv_usec: dur.subsec_micros() as _,
                 };
             }
 
