@@ -5,9 +5,10 @@ use core::ops::Deref;
 
 use crate::{Errno, Result};
 
-mod io;
-pub use self::io::*;
+mod fcntl;
+pub use self::fcntl::*;
 
+mod io;
 mod net;
 
 mod poll;

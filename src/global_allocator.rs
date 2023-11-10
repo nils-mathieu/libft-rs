@@ -4,6 +4,9 @@ use core::alloc::GlobalAlloc;
 use core::ffi::c_void;
 use core::mem::align_of;
 
+#[global_allocator]
+static MALLOC: Malloc = Malloc;
+
 /// An implementation of [`GlobalAlloc`] that uses `malloc` and `free`.
 struct Malloc;
 

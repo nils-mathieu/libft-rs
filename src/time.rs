@@ -3,6 +3,8 @@
 use core::ops::{Add, Sub};
 use core::time::Duration;
 
+use crate::{Errno, Result};
+
 /// A clock that measures time since some epoch, goes at some rate.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Clock(libc::clockid_t);
@@ -23,13 +25,17 @@ impl Clock {
     pub const MONOTONIC: Clock = Clock(libc::CLOCK_MONOTONIC);
 
     /// Returns the current instant associated with this clock.
-    pub fn get(self) -> Instant {
+    pub fn get(self) -> Result<Instant> {
         let mut timespec = unsafe { core::mem::zeroed() };
-        unsafe { libc::clock_gettime(self.0, &mut timespec) };
-        Instant(Duration::new(
-            timespec.tv_sec as u64,
-            timespec.tv_nsec as u32,
-        ))
+        let ret = unsafe { libc::clock_gettime(self.0, &mut timespec) };
+        if ret == 0 {
+            Ok(Instant(Duration::new(
+                timespec.tv_sec as u64,
+                timespec.tv_nsec as u32,
+            )))
+        } else {
+            Err(Errno::last())
+        }
     }
 }
 
@@ -56,6 +62,16 @@ impl Instant {
     /// If the operation overflows, it saturates at `Instant::FAR_FUTURE`.
     pub fn saturating_add(self, rhs: Duration) -> Instant {
         Instant(self.0.saturating_add(rhs))
+    }
+
+    /// Returns the amount of time elapsed since this instant was created.
+    ///
+    /// If `rhs` is earlier than `self`, the result is the amount of time between
+    /// the two events.
+    ///
+    /// If `self` is earlier than `rhs`, the result is `Duration::ZERO`.
+    pub fn saturating_sub(self, rhs: Instant) -> Duration {
+        self.0.saturating_sub(rhs.0)
     }
 }
 

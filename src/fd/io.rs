@@ -1,30 +1,9 @@
-use core::ffi::{c_int, c_void};
+use core::ffi::c_void;
 use core::fmt;
 use core::mem::MaybeUninit;
 
-use bitflags::bitflags;
-
+use super::OpenFlags;
 use crate::{CharStar, Errno, Fd, File, Result};
-
-bitflags! {
-    /// Flags that can be passed to [`Fd::open`].
-    ///
-    /// Describes how the file should be opened.
-    pub struct OpenFlags: c_int {
-        /// The file should be opened for reading only.
-        const READ_ONLY = libc::O_RDONLY;
-        /// The file should be opened for writing only.
-        const WRITE_ONLY = libc::O_WRONLY;
-        /// The file should be opened for reading and writing.
-        const READ_WRITE = libc::O_RDWR;
-        /// The file should be created if it doesn't exist.
-        const CREATE = libc::O_CREAT;
-        /// The file should be truncated to zero size if it already exists.
-        const TRUNCATE = libc::O_TRUNC;
-        /// The file should be appended to if it already exists.
-        const APPEND = libc::O_APPEND;
-    }
-}
 
 impl Fd {
     /// Opens a file for reading only.
