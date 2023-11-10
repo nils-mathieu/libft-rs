@@ -34,7 +34,7 @@ pub struct PollFd {
 
     /// The events that the file descriptor waits for.
     ///
-    /// If an event occurs and the corresponding flag is set, then the [`revents`] field
+    /// If an event occurs and the corresponding flag is set, then the `revents` field
     /// will be set to the same value.
     pub events: PollFlags,
 

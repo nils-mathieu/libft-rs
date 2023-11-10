@@ -16,7 +16,7 @@ unsafe fn null_terminated_array_len(array: *const *const c_char) -> usize {
     p.offset_from(array) as usize
 }
 
-/// The raw entry point called by the [`entry_point`] macro.
+/// Calls the function `f` using the provided `argv` and `envp` pointers.
 ///
 /// # Safety
 ///

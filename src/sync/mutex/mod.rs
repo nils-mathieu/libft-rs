@@ -14,10 +14,12 @@ pub use self::noblock::*;
 ///
 /// # Safety
 ///
-/// As long as a [`Guard`] is alive (i.e. the lock is locked), it must not be
-/// possible to create another [`Guard`] from the same [`Lock`].
+/// The lock must actually be exclusive! When it is acquired using [`lock`] or
+/// [`try_lock`], no one must be able to acquire it until it is released using [`unlock`].
 ///
-/// [`Guard`]: Lock::Guard
+/// [`lock`]: Lock::lock
+/// [`try_lock`]: Lock::try_lock
+/// [`unlock`]: Lock::unlock
 pub unsafe trait Lock {
     /// An instance of the [`Lock`] that is unlocked.
     const UNLOCKED: Self;
@@ -26,7 +28,7 @@ pub unsafe trait Lock {
     /// [`Guard`] is safe to send between threads.
     ///
     /// Typically, this will be either `()` if the guard can be [`Send`], or
-    /// something like [`*mut ()`] if it cannot.
+    /// something like `*mut ()` if it cannot.
     type GuardMarker;
 
     /// Attempts to lock the [`Lock`] without blocking.
