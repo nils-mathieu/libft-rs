@@ -1,6 +1,7 @@
 //! Defines the [`SocketAddr`] type.
 
 use core::ffi::c_int;
+use core::fmt;
 use core::mem::size_of;
 
 use super::{AddrFlags, AddrInfo, SocketType};
@@ -59,7 +60,7 @@ impl SocketAddr {
                 let addr = unsafe { *(addr as *const libc::sockaddr_in6) };
                 Self::V6(addr.sin6_addr.s6_addr, addr.sin6_port.to_be())
             }
-            _ => unreachable!("invalid socket address"),
+            family => unreachable!("unknown socket address family: {family}"),
         }
     }
 
@@ -96,6 +97,15 @@ impl SocketAddr {
     }
 }
 
+impl fmt::Display for SocketAddr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Self::V4(ip, port) => format_ipv4(ip, port, f),
+            Self::V6(ip, port) => format_ipv6(ip, port, f),
+        }
+    }
+}
+
 /// The family of a [`SocketAddr`].
 pub enum SocketAddrFamily {
     /// An IP-v4 socket address.
@@ -117,4 +127,65 @@ impl SocketAddrFamily {
             Self::V6 => size_of::<libc::sockaddr_in6>() as _,
         }
     }
+}
+
+/// Formats an IPv4 using the provided formatter.
+fn format_ipv4(ip: [u8; 4], port: u16, f: &mut fmt::Formatter) -> fmt::Result {
+    let [a, b, c, d] = ip;
+    write!(f, "{a}.{b}.{c}.{d}:{port}")
+}
+
+/// Formats an IPv6 using the provided formatter.
+fn format_ipv6(ip: [u8; 16], port: u16, f: &mut fmt::Formatter) -> fmt::Result {
+    let ip: [u16; 8] = core::array::from_fn(|i| u16::from_be_bytes([ip[i * 2], ip[i * 2 + 1]]));
+
+    // Look for the longest sequence of zeros.
+    let mut best = 0..0;
+
+    let mut i = 0;
+    let mut current_start = 0;
+    while i < 8 {
+        if ip[i] == 0 {
+            current_start = i;
+
+            while i < 8 && ip[i] == 0 {
+                i += 1;
+            }
+
+            if i - current_start > best.len() {
+                best = current_start..i;
+            }
+        }
+
+        i += 1;
+        current_start += 1;
+    }
+
+    // Write the address.
+    write!(f, "[")?;
+    if best.start == best.end {
+        for (i, n) in ip.iter().enumerate() {
+            write!(f, "{n}")?;
+
+            if i != 7 {
+                write!(f, ":")?;
+            }
+        }
+    } else {
+        if best.start == 0 {
+            write!(f, ":")?;
+        }
+        for n in &ip[0..best.start] {
+            write!(f, "{n}:")?;
+        }
+        for n in &ip[best.end..8] {
+            write!(f, ":{n}")?;
+        }
+        if best.end == 8 {
+            write!(f, ":")?;
+        }
+    }
+    write!(f, "]:{port}")?;
+
+    Ok(())
 }

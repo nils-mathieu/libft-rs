@@ -1,5 +1,8 @@
 {
     "rust-analyzer.check.allTargets": false,
     "rust-analyzer.check.command": "clippy",
-    "rust-analyzer.check.features": "all"
+    "rust-analyzer.check.features": [
+        "panic-handler",
+        "global-allocator"
+    ]
 }

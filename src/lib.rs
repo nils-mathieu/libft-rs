@@ -1,9 +1,8 @@
 //! My own standard library for 42 school projects.
 
 #![no_std]
-#![feature(lang_items)]
-#![feature(extern_types)]
 #![allow(internal_features)]
+#![feature(lang_items, extern_types)]
 
 pub mod charstar;
 pub use self::charstar::CharStar;

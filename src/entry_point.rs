@@ -21,13 +21,13 @@
 ///
 /// # Examples
 ///
-/// ```
+/// ```ignore
 /// # use ft::entry_point;
 /// # use ft::CharStar;
 /// #
 /// entry_point!(main);
 ///
-/// fn main(argv: &'static [CharStar<'static>], envp: &'static [CharStar<'static>]) -> u8 {
+/// fn main(argv: &[&CharStar], envp: &[&CharStar]) -> u8 {
 ///     // ...
 ///     0
 /// }

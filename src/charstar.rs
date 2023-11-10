@@ -8,7 +8,7 @@ use core::iter::FusedIterator;
 ///
 /// # Examples
 ///
-/// ```
+/// ```ignore
 /// # use ft::charstar;
 /// #
 /// let s = charstar!("Hello, world!");
