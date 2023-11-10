@@ -2,10 +2,31 @@
 
 use core::ffi::c_int;
 
-use crate::net::SocketAddr;
+use crate::net::{SocketAddr, SocketAddrFamily, SocketType};
 use crate::{Errno, Fd, File, Result};
 
 impl Fd {
+    /// Creates a communication endpoint.
+    ///
+    /// # Arguments
+    ///
+    /// - `domain` - The domain to which the socket will bound to.
+    ///
+    /// - `ty` - The type of the socket.
+    ///
+    /// # Returns
+    ///
+    /// The created file descriptor.
+    pub fn socket(domain: SocketAddrFamily, ty: SocketType) -> Result<Self> {
+        let fd = unsafe { libc::socket(domain.to_raw(), ty.to_raw(), 0) };
+
+        if fd < 0 {
+            Err(Errno::last())
+        } else {
+            Ok(Self(fd))
+        }
+    }
+
     /// Marks the socket referenced by this file descriptor as a passive socket.
     ///
     /// Passive sockets are used to listen for incoming connections coming from
@@ -117,5 +138,12 @@ impl Fd {
         } else {
             Err(Errno::last())
         }
+    }
+}
+
+impl File {
+    /// See [`Fd::socket`].
+    pub fn socket(family: SocketAddrFamily, ty: SocketType) -> Result<Self> {
+        Fd::socket(family, ty).map(Self)
     }
 }
