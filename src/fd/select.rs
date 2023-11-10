@@ -124,40 +124,39 @@ impl<'a> Iterator for FdSetIter<'a> {
 /// On error, the error number is returned.
 pub fn select(
     highest: Fd,
-    read: &mut FdSet,
-    write: &mut FdSet,
-    error: &mut FdSet,
+    read: Option<&mut FdSet>,
+    write: Option<&mut FdSet>,
+    error: Option<&mut FdSet>,
     timeout: Option<Duration>,
 ) -> Result<usize> {
     let mut timeval;
-
     let timeout = match timeout {
         Some(dur) => {
             const MAX_TIMEVAL: Duration = Duration::new(i64::MAX as u64, 999_999_000);
 
             if dur > MAX_TIMEVAL {
-                timeval = libc::timeval {
-                    tv_sec: i64::MAX,
-                    tv_usec: 999_999,
-                }
+                core::ptr::null_mut()
             } else {
                 timeval = libc::timeval {
                     tv_sec: dur.as_secs() as i64,
                     tv_usec: dur.subsec_micros() as _,
                 };
+                &mut timeval
             }
-
-            &mut timeval
         }
         None => core::ptr::null_mut(),
     };
 
+    let readfds = read.map_or_else(core::ptr::null_mut, |set| &mut set.0);
+    let writefds = write.map_or_else(core::ptr::null_mut, |set| &mut set.0);
+    let exceptfds = error.map_or_else(core::ptr::null_mut, |set| &mut set.0);
+
     let ret = unsafe {
         libc::select(
             highest.to_raw().wrapping_add(1),
-            &mut read.0,
-            &mut write.0,
-            &mut error.0,
+            readfds,
+            writefds,
+            exceptfds,
             timeout,
         )
     };
