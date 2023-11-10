@@ -14,6 +14,9 @@ mod net;
 mod poll;
 pub use self::poll::*;
 
+mod select;
+pub use self::select::*;
+
 /// A file descriptor.
 ///
 /// # Notes
