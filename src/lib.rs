@@ -17,7 +17,9 @@ mod errno;
 pub use self::errno::{Errno, Result};
 
 pub mod mmap;
+
 pub mod process;
+pub use self::process::Signal;
 
 pub mod sync;
 pub use self::sync::mutex::Mutex;
