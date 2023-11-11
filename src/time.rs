@@ -60,6 +60,7 @@ impl Instant {
     /// Returns the amount of time elapsed since this instant was created.
     ///
     /// If the operation overflows, it saturates at `Instant::FAR_FUTURE`.
+    #[inline]
     pub fn saturating_add(self, rhs: Duration) -> Instant {
         Instant(self.0.saturating_add(rhs))
     }
@@ -70,6 +71,7 @@ impl Instant {
     /// the two events.
     ///
     /// If `self` is earlier than `rhs`, the result is `Duration::ZERO`.
+    #[inline]
     pub fn saturating_sub(self, rhs: Instant) -> Duration {
         self.0.saturating_sub(rhs.0)
     }
@@ -78,6 +80,7 @@ impl Instant {
 impl Sub for Instant {
     type Output = Duration;
 
+    #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
         self.0.saturating_sub(rhs.0)
     }
@@ -86,6 +89,7 @@ impl Sub for Instant {
 impl Add<Duration> for Instant {
     type Output = Instant;
 
+    #[inline]
     fn add(self, rhs: Duration) -> Self::Output {
         Instant(self.0 + rhs)
     }

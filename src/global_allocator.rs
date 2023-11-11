@@ -11,6 +11,7 @@ static MALLOC: Malloc = Malloc;
 struct Malloc;
 
 unsafe impl GlobalAlloc for Malloc {
+    #[inline]
     unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
         if layout.align() > align_of::<usize>() {
             return core::ptr::null_mut();
@@ -19,6 +20,7 @@ unsafe impl GlobalAlloc for Malloc {
         unsafe { libc::malloc(layout.size()) as *mut u8 }
     }
 
+    #[inline]
     unsafe fn alloc_zeroed(&self, layout: core::alloc::Layout) -> *mut u8 {
         if layout.align() > align_of::<usize>() {
             return core::ptr::null_mut();
@@ -27,6 +29,7 @@ unsafe impl GlobalAlloc for Malloc {
         unsafe { libc::calloc(layout.size(), 1) as *mut u8 }
     }
 
+    #[inline]
     unsafe fn realloc(
         &self,
         ptr: *mut u8,
@@ -36,6 +39,7 @@ unsafe impl GlobalAlloc for Malloc {
         unsafe { libc::realloc(ptr as *mut c_void, new_size) as *mut u8 }
     }
 
+    #[inline]
     unsafe fn dealloc(&self, ptr: *mut u8, _layout: core::alloc::Layout) {
         unsafe { libc::free(ptr as *mut c_void) };
     }

@@ -17,23 +17,27 @@ unsafe impl Lock for NoBlockLock {
 
     type GuardMarker = ();
 
+    #[inline]
     fn is_locked(&self) -> bool {
         self.0.load(Relaxed) == LOCKED
     }
 
     #[track_caller]
+    #[inline]
     fn lock(&self) {
         if !self.try_lock() {
             panic!("lock already taken");
         }
     }
 
+    #[inline]
     fn try_lock(&self) -> bool {
         self.0
             .compare_exchange_weak(UNLOCKED, LOCKED, Acquire, Relaxed)
             .is_ok()
     }
 
+    #[inline]
     unsafe fn unlock(&self) {
         self.0.store(UNLOCKED, Release);
     }

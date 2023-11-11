@@ -17,6 +17,7 @@ impl Fd {
     /// # Returns
     ///
     /// The created file descriptor.
+    #[inline]
     pub fn socket(domain: SocketAddrFamily, ty: SocketType) -> Result<Self> {
         let fd = unsafe { libc::socket(domain.to_raw(), ty.to_raw(), 0) };
 
@@ -42,6 +43,7 @@ impl Fd {
     /// # Returns
     ///
     /// Nothing, or an error if the operation fails.
+    #[inline]
     pub fn listen(self, backlog: usize) -> Result<()> {
         let ret = unsafe { libc::listen(self.0, backlog as c_int) };
         if ret == 0 {
@@ -143,6 +145,7 @@ impl Fd {
 
 impl File {
     /// See [`Fd::socket`].
+    #[inline]
     pub fn socket(family: SocketAddrFamily, ty: SocketType) -> Result<Self> {
         Fd::socket(family, ty).map(Self)
     }

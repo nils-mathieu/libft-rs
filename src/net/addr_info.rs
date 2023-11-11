@@ -106,6 +106,7 @@ impl Iterator for LookupAddrInfo {
 }
 
 impl Drop for LookupAddrInfo {
+    #[inline]
     fn drop(&mut self) {
         unsafe { libc::freeaddrinfo(self.head) };
     }

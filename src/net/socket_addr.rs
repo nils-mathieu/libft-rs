@@ -116,6 +116,7 @@ pub enum SocketAddrFamily {
 
 impl SocketAddrFamily {
     /// Returns the raw value of the socket address family.
+    #[inline]
     pub fn to_raw(self) -> c_int {
         self as _
     }

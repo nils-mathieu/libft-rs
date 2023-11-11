@@ -4,6 +4,7 @@ mod signal;
 pub use self::signal::*;
 
 /// Aborts the current process.
+#[inline]
 pub fn abort() -> ! {
     unsafe { libc::abort() }
 }

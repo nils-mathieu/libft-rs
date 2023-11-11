@@ -11,6 +11,7 @@ impl Fd {
     /// # Returns
     ///
     /// A [`Fd`] instance representing the opened file.
+    #[inline]
     pub fn open(path: &CharStar, flags: OpenFlags) -> Result<Self> {
         let res = unsafe { libc::open(path.as_ptr(), flags.bits()) };
         if res < 0 {
@@ -31,6 +32,7 @@ impl Fd {
     /// # Returns
     ///
     /// The number of bytes written to the file descriptor.
+    #[inline]
     pub fn write(self, buf: &[u8]) -> Result<usize> {
         let res = unsafe { libc::write(self.0, buf.as_ptr() as *const c_void, buf.len()) };
         if res < 0 {
@@ -117,6 +119,7 @@ impl Fd {
     ///
     /// Note that if the input bufferh as a size of zero, this function will always return `0`,
     /// even if more data is available for reading.
+    #[inline]
     pub fn read(self, buf: &mut [MaybeUninit<u8>]) -> Result<usize> {
         let res = unsafe { libc::read(self.0, buf.as_mut_ptr() as *mut c_void, buf.len()) };
         if res < 0 {
@@ -129,11 +132,13 @@ impl Fd {
 
 impl File {
     /// Opens a file for reading.
+    #[inline]
     pub fn open(path: &CharStar) -> Result<Self> {
         Fd::open(path, OpenFlags::READ_ONLY).map(Self)
     }
 
     /// Creates a new file for writing, truncating it if it already exists.
+    #[inline]
     pub fn create(path: &CharStar) -> Result<Self> {
         Fd::open(
             path,

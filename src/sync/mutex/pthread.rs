@@ -14,15 +14,18 @@ unsafe impl Lock for PthreadLock {
     // guaranteed.
     type GuardMarker = *mut ();
 
+    #[inline]
     fn try_lock(&self) -> bool {
         unsafe { libc::pthread_mutex_trylock(&self.0 as *const _ as *mut _) == 0 }
     }
 
+    #[inline]
     fn lock(&self) {
         let ret = unsafe { libc::pthread_mutex_lock(&self.0 as *const _ as *mut _) };
         debug_assert_eq!(ret, 0);
     }
 
+    #[inline]
     fn is_locked(&self) -> bool {
         if self.try_lock() {
             unsafe { self.unlock() };
@@ -32,6 +35,7 @@ unsafe impl Lock for PthreadLock {
         }
     }
 
+    #[inline]
     unsafe fn unlock(&self) {
         let ret = unsafe { libc::pthread_mutex_unlock(&self.0 as *const _ as *mut _) };
         debug_assert_eq!(ret, 0);
@@ -39,6 +43,7 @@ unsafe impl Lock for PthreadLock {
 }
 
 impl Drop for PthreadLock {
+    #[inline]
     fn drop(&mut self) {
         let ret = unsafe { libc::pthread_mutex_destroy(&mut self.0 as *mut _ as *mut _) };
         debug_assert_eq!(ret, 0);

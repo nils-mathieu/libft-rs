@@ -29,6 +29,7 @@ bitflags! {
 
 impl Fd {
     /// Sets the [`OpenFlags`] for this file descriptor.
+    #[inline]
     pub fn set_flags(self, flags: OpenFlags) -> Result<()> {
         let ret = unsafe { libc::fcntl(self.0, libc::F_SETFL, flags.bits()) };
         if ret == 0 {
@@ -39,6 +40,7 @@ impl Fd {
     }
 
     /// Gets the [`OpenFlags`] for this file descriptor.
+    #[inline]
     pub fn get_flags(self) -> Result<OpenFlags> {
         let ret = unsafe { libc::fcntl(self.0, libc::F_GETFL) };
         if ret < 0 {
