@@ -44,6 +44,9 @@ pub struct ReadBuffer {
     tail: usize,
 }
 
+unsafe impl Send for ReadBuffer {}
+unsafe impl Sync for ReadBuffer {}
+
 impl ReadBuffer {
     /// Creates a new [`ReadBuffer`] instance.
     pub const fn new() -> Self {
