@@ -3,6 +3,7 @@
 #![no_std]
 #![allow(internal_features)]
 #![feature(lang_items, extern_types, panic_info_message)]
+#![feature(slice_ptr_get)]
 
 pub mod charstar;
 pub use self::charstar::CharStar;
@@ -27,6 +28,11 @@ mod time;
 pub use self::time::*;
 
 mod entry_point;
+
+pub mod malloc;
+
+#[cfg(feature = "collections")]
+pub mod collections;
 
 #[doc(hidden)]
 pub mod __private;

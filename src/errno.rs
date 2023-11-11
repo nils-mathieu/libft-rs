@@ -16,6 +16,7 @@ pub struct Errno(c_int);
 
 impl Errno {
     /// Returns the value of the `errno` global variable on the current thread.
+    #[inline]
     pub fn last() -> Self {
         #[cfg(target_os = "macos")]
         {
@@ -29,6 +30,7 @@ impl Errno {
     }
 
     /// Sets the value of the `errno` global variable on the current thread.
+    #[inline]
     pub fn make_last(self) {
         #[cfg(target_os = "macos")]
         unsafe {
@@ -42,11 +44,13 @@ impl Errno {
     }
 
     /// Creates a new [`Errno`] instance from the provided raw value.
+    #[inline]
     pub fn from_raw(raw: c_int) -> Self {
         Self(raw)
     }
 
     /// Returns the raw value of this [`Errno`] instance.
+    #[inline]
     pub fn to_raw(self) -> c_int {
         self.0
     }
@@ -120,4 +124,6 @@ define_Errno_constants! {
     pub const WOULD_BLOCK = libc::EWOULDBLOCK;
     /// Indicates that the operation was interrupted by a signal.
     pub const INTERRUPTED = libc::EINTR;
+    /// The system is out of memory.
+    pub const NO_MEMORY = libc::ENOMEM;
 }

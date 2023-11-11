@@ -6,8 +6,10 @@ edition = "2021"
 description = "My personal library for 42 school projects."
 
 [features]
+default = ["collections"]
 panic-handler = []
 global-allocator = []
+collections = []
 
 [dependencies]
 libc = { version = "0.2", default-features = false }
