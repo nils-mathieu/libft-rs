@@ -16,8 +16,9 @@ impl FdSet {
     }
 
     /// Returns whether a [`FdSet`] instance can hold the provided file descriptor.
+    #[inline]
     pub fn can_hold(fd: Fd) -> bool {
-        fd.to_raw() < 1024
+        fd.to_raw() < libc::FD_SETSIZE as c_int
     }
 
     /// Inserts a file descriptor in this set.
@@ -26,6 +27,7 @@ impl FdSet {
     ///
     /// This function panics in debug builds when the provided file descriptor do not fit
     /// in the set.
+    #[inline]
     pub fn insert(&mut self, fd: Fd) {
         debug_assert!(Self::can_hold(fd));
         unsafe { libc::FD_SET(fd.to_raw(), &mut self.0) }
@@ -37,6 +39,7 @@ impl FdSet {
     ///
     /// This function panics in debug builds when the provided file descriptor do not fit
     /// in the set.
+    #[inline]
     pub fn remove(&mut self, fd: Fd) {
         debug_assert!(Self::can_hold(fd));
         unsafe { libc::FD_CLR(fd.to_raw(), &mut self.0) }
@@ -48,12 +51,14 @@ impl FdSet {
     ///
     /// This function panics in debug builds when the provided file descriptor do not fit
     /// in the set.
+    #[inline]
     pub fn contains(&self, fd: Fd) -> bool {
         debug_assert!(Self::can_hold(fd));
         unsafe { libc::FD_ISSET(fd.to_raw(), &self.0) }
     }
 
     /// Clears the set.
+    #[inline]
     pub fn clear(&mut self) {
         unsafe { core::ptr::write_bytes(&mut self.0, 0x00, 1) }
     }
@@ -90,6 +95,7 @@ impl<'a> Iterator for FdSetIter<'a> {
         }
     }
 
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (_min, max) = self.range.size_hint();
         (0, max)
