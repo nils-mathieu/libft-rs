@@ -4,10 +4,25 @@ use core::panic::PanicInfo;
 use core::sync::atomic::AtomicPtr;
 use core::sync::atomic::Ordering::Relaxed;
 
+use crate::eprintf;
+
 /// The default panic handler, loaded into the [`PANIC_HANDLER`] function pointer by
 /// default.
-fn default_panic_handler(_info: &PanicInfo) -> ! {
-    unsafe { libc::abort() }
+fn default_panic_handler(info: &PanicInfo) -> ! {
+    eprintf!("\x1B[1;31mpanic\x1B[0m: ");
+
+    match info.message() {
+        Some(msg) => eprintf!("{}", msg),
+        None => eprintf!("no further information"),
+    }
+
+    if let Some(loc) = info.location() {
+        eprintf!(" (at {}:{})", loc.file(), loc.line());
+    }
+
+    eprintf!("\n");
+
+    crate::process::abort();
 }
 
 /// The global panic handler to be called when something the code panics.

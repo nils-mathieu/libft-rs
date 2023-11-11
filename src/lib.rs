@@ -2,7 +2,7 @@
 
 #![no_std]
 #![allow(internal_features)]
-#![feature(lang_items, extern_types)]
+#![feature(lang_items, extern_types, panic_info_message)]
 
 pub mod charstar;
 pub use self::charstar::CharStar;
