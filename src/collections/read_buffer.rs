@@ -170,8 +170,15 @@ impl ReadBuffer {
     /// # Safety
     ///
     /// `count` must be less than or equal to `pending()`.
-    pub unsafe fn consume_unchecked(&mut self, count: usize) {
+    ///
+    /// # Returns
+    ///
+    /// This function returns the part of the buffer that has been consumed.
+    pub unsafe fn consume_unchecked(&mut self, count: usize) -> &mut [u8] {
         debug_assert!(self.tail + count <= self.head);
+
+        let consumed_ptr = self.data.as_ptr().add(self.tail);
+
         self.tail += count;
 
         // We just consumed the whole buffer, we can reset
@@ -181,6 +188,8 @@ impl ReadBuffer {
             self.tail = 0;
             self.head = 0;
         }
+
+        core::slice::from_raw_parts_mut(consumed_ptr, count)
     }
 
     /// Fills the buffer with additional data by reading from the provided file descriptor,
