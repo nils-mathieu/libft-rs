@@ -66,8 +66,25 @@ impl ReadBuffer {
     ///
     /// Pending bytes are the part of the buffer that has been read, but not yet consumed.
     #[inline]
-    pub fn pending(&self) -> usize {
-        self.head - self.tail
+    pub fn pending(&self) -> &[u8] {
+        unsafe {
+            let p = self.data.as_ptr().add(self.tail);
+            let len = self.head - self.tail;
+            core::slice::from_raw_parts(p, len)
+        }
+    }
+
+    /// Returns a slice over the part of the buffer that has been consumed.
+    ///
+    /// Note that this function is not reliable as the buffer may overwrite the consumed
+    /// part when:
+    ///
+    /// 1. It needs to reallocate its internal buffer.
+    ///
+    /// 2. It needs to move the consumed part to make room for more data.
+    #[inline]
+    pub fn consumed(&self) -> &[u8] {
+        unsafe { core::slice::from_raw_parts(self.data.as_ptr(), self.tail) }
     }
 
     /// Assumes that `count` additional bytes have been written to the buffer in its
@@ -169,15 +186,13 @@ impl ReadBuffer {
     ///
     /// # Safety
     ///
-    /// `count` must be less than or equal to `pending()`.
+    /// `count` must be less than or equal to `pending().len()`.
     ///
     /// # Returns
     ///
     /// This function returns the part of the buffer that has been consumed.
-    pub unsafe fn consume_unchecked(&mut self, count: usize) -> &mut [u8] {
+    pub unsafe fn consume_unchecked(&mut self, count: usize) {
         debug_assert!(self.tail + count <= self.head);
-
-        let consumed_ptr = self.data.as_ptr().add(self.tail);
 
         self.tail += count;
 
@@ -188,17 +203,18 @@ impl ReadBuffer {
             self.tail = 0;
             self.head = 0;
         }
-
-        core::slice::from_raw_parts_mut(consumed_ptr, count)
     }
 
     /// Fills the buffer with additional data by reading from the provided file descriptor,
     /// returning the part of the buffer that has been filled.
     pub fn fill_with_fd(&mut self, fd: crate::Fd) -> crate::Result<&[u8]> {
         let count = fd.read(self.spare_capacity_mut())?;
-        let ptr = unsafe { self.data.as_ptr().add(self.head) };
-        unsafe { self.assume_init(count) };
-        Ok(unsafe { core::slice::from_raw_parts(ptr, count) })
+
+        unsafe {
+            let ptr = self.data.as_ptr().add(self.head);
+            self.assume_init(count);
+            Ok(core::slice::from_raw_parts(ptr, count))
+        }
     }
 }
 
