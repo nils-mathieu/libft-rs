@@ -47,32 +47,38 @@ impl CharStar {
     ///
     /// The memory referenced by `data`, up and including the null byte, must remain valid and
     /// borrowed for the lifetime `'a`.
+    #[inline]
     pub const unsafe fn from_ptr<'a>(data: *const c_char) -> &'a Self {
         &*(data as *const Self)
     }
 
     /// Returns a pointer to the first byte of the string.
+    #[inline]
     pub const fn as_ptr(&self) -> *const c_char {
         self as *const Self as *const c_char
     }
 
     /// Returns whether the string contains no bytes.
+    #[inline]
     pub fn is_empty(&self) -> bool {
         unsafe { *self.as_ptr() == 0 }
     }
 
     /// Returns the length of the string, not including the terminating null byte.
+    #[inline]
     pub fn len(&self) -> usize {
         unsafe { libc::strlen(self.as_ptr()) }
     }
 
     /// Returns the length of the string, or `max` if the string is longer than `max`. The
     /// terminating null byte is not included in the length.
+    #[inline]
     pub fn len_bounded(&self, max: usize) -> usize {
         unsafe { libc::strnlen(self.as_ptr(), max) }
     }
 
     /// Returns the bytes of the string, not including the terminating null byte.
+    #[inline]
     pub fn as_bytes(&self) -> &[u8] {
         let len = self.len();
         unsafe { core::slice::from_raw_parts(self.as_ptr() as *const u8, len) }
@@ -80,6 +86,7 @@ impl CharStar {
 
     /// Returns the bytes of the string, or the first `max` bytes if the string is longer than
     /// `max`. The terminating null byte is not included in the returned slice.
+    #[inline]
     pub fn as_bytes_bounded(&self, max: usize) -> &[u8] {
         let len = self.len_bounded(max);
         unsafe { core::slice::from_raw_parts(self.as_ptr() as *const u8, len) }
@@ -90,6 +97,7 @@ impl CharStar {
     /// # Errors
     ///
     /// This function fails with [`None`] if the string is not valid UTF-8.
+    #[inline]
     pub fn as_str(&self) -> Option<&str> {
         core::str::from_utf8(self.as_bytes()).ok()
     }
@@ -115,6 +123,7 @@ impl CharStar {
     }
 
     /// Creates an iterator over the bytes of the string.
+    #[inline]
     pub fn iter(&self) -> Iter {
         self.into_iter()
     }
@@ -136,6 +145,7 @@ impl fmt::Display for CharStar {
 }
 
 impl PartialEq<CharStar> for CharStar {
+    #[inline]
     fn eq(&self, other: &CharStar) -> bool {
         unsafe { libc::strcmp(self.as_ptr(), other.as_ptr()) == 0 }
     }
@@ -168,12 +178,14 @@ impl PartialEq<CharStar> for [u8] {
 impl Eq for CharStar {}
 
 impl PartialOrd<CharStar> for CharStar {
+    #[inline]
     fn partial_cmp(&self, other: &CharStar) -> Option<core::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
 impl Ord for CharStar {
+    #[inline]
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
         unsafe { libc::strcmp(self.as_ptr(), other.as_ptr()).cmp(&0) }
     }
@@ -214,6 +226,7 @@ impl<'a> IntoIterator for &'a CharStar {
     type Item = u8;
     type IntoIter = Iter<'a>;
 
+    #[inline]
     fn into_iter(self) -> Self::IntoIter {
         Iter(self)
     }
