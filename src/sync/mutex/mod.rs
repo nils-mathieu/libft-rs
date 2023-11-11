@@ -96,6 +96,7 @@ impl<T: ?Sized, L: Lock> Mutex<T, L> {
     }
 
     /// Blocks the current thread until the mutex is locked.
+    #[track_caller]
     pub fn lock(&self) -> Guard<T, L> {
         self.lock.lock();
         unsafe { Guard::new_unchecked(self) }

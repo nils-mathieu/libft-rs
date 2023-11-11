@@ -21,6 +21,7 @@ unsafe impl Lock for NoBlockLock {
         self.0.load(Relaxed) == LOCKED
     }
 
+    #[track_caller]
     fn lock(&self) {
         if !self.try_lock() {
             panic!("lock already taken");
