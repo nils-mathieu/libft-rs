@@ -38,7 +38,10 @@ pub type Result<T> = ::core::result::Result<T, OutOfMemory>;
 /// The returned pointer should be freed at some point using [`deallocate`] or memory
 /// will leak.
 pub fn allocate(mut size: usize) -> Result<NonNull<[u8]>> {
-    size = unsafe { libc::malloc_good_size(size) };
+    #[cfg(target_os = "macos")]
+    {
+        size = unsafe { libc::malloc_good_size(size) };
+    }
 
     let ptr = unsafe { libc::malloc(size) };
 
@@ -46,7 +49,15 @@ pub fn allocate(mut size: usize) -> Result<NonNull<[u8]>> {
         return Err(OutOfMemory);
     }
 
-    let size = unsafe { libc::malloc_size(ptr) };
+    #[cfg(target_os = "macos")]
+    {
+        size = unsafe { libc::malloc_size(ptr) };
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        size = unsafe { libc::malloc_usable_size(ptr) };
+    }
 
     Ok(NonNull::slice_from_raw_parts(
         unsafe { NonNull::new_unchecked(ptr.cast()) },
