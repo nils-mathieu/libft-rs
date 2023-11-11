@@ -126,4 +126,6 @@ define_Errno_constants! {
     pub const INTERRUPTED = libc::EINTR;
     /// The system is out of memory.
     pub const NO_MEMORY = libc::ENOMEM;
+    /// The connection was reset by the peer.
+    pub const CONNECTION_RESET = libc::ECONNRESET;
 }
