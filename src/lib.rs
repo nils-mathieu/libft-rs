@@ -5,42 +5,32 @@
 #![feature(lang_items, extern_types, panic_info_message)]
 #![feature(slice_ptr_get)]
 
-pub mod charstar;
-pub use self::charstar::CharStar;
-
-pub mod fd;
-pub use self::fd::{Fd, File};
-
-pub mod net;
-
-mod errno;
-pub use self::errno::{Errno, Result};
-
-pub mod mmap;
-
-pub mod process;
-pub use self::process::Signal;
-
-pub mod sync;
-pub use self::sync::mutex::Mutex;
-
-mod time;
-pub use self::time::*;
-
 mod entry_point;
+mod errno;
+#[cfg(feature = "global-allocator")]
+mod global_allocator;
+#[cfg(feature = "panic-handler")]
+mod panic_handler;
+mod time;
 
-pub mod malloc;
-
+pub mod charstar;
 #[cfg(feature = "collections")]
 pub mod collections;
+pub mod fd;
+pub mod malloc;
+pub mod mmap;
+pub mod net;
+pub mod process;
+pub mod sync;
+
+pub use self::charstar::CharStar;
+pub use self::errno::{Errno, Result};
+pub use self::fd::{Fd, File};
+#[cfg(feature = "panic-handler")]
+pub use self::panic_handler::set_panic_handler;
+pub use self::process::Signal;
+pub use self::sync::mutex::Mutex;
+pub use self::time::*;
 
 #[doc(hidden)]
 pub mod __private;
-
-#[cfg(feature = "panic-handler")]
-mod panic_handler;
-#[cfg(feature = "panic-handler")]
-pub use self::panic_handler::set_panic_handler;
-
-#[cfg(feature = "global-allocator")]
-mod global_allocator;
