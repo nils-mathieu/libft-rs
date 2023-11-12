@@ -1,6 +1,6 @@
 //! Provides functions to work with C-like strings.
 
-use core::ffi::c_char;
+use core::ffi::{c_char, c_int};
 use core::fmt;
 use core::iter::FusedIterator;
 
@@ -108,6 +108,50 @@ impl CharStar {
         len == prefix
     }
 
+    /// Returns a [`CharStar`] starting at the first byte of the string equal to `c`.
+    ///
+    /// If the character is not found, returns [`None`].
+    #[inline]
+    pub fn advance_at_char(&self, c: u8) -> Option<&Self> {
+        let p = unsafe { libc::strchr(self.as_ptr(), c as c_int) };
+
+        if p.is_null() {
+            None
+        } else {
+            Some(unsafe { Self::from_ptr(p) })
+        }
+    }
+
+    /// Splits the string at the first byte equal to `c`.
+    ///
+    /// If the character is not found, returns [`None`].
+    pub fn split_at_char(&self, c: u8) -> Option<(&[u8], &Self)> {
+        let p = unsafe { libc::strchr(self.as_ptr(), c as c_int) };
+
+        if p.is_null() {
+            None
+        } else {
+            unsafe {
+                let len = p.offset_from(self.as_ptr()) as usize;
+                let init = core::slice::from_raw_parts(self.as_ptr() as *const u8, len);
+                let rest = Self::from_ptr(p);
+                Some((init, rest))
+            }
+        }
+    }
+
+    /// Returns the index of the first byte of the string equal to `c`.
+    #[inline]
+    pub fn index_of(&self, c: u8) -> Option<usize> {
+        let p = unsafe { libc::strchr(self.as_ptr(), c as c_int) };
+
+        if p.is_null() {
+            None
+        } else {
+            Some(unsafe { p.offset_from(self.as_ptr()) as usize })
+        }
+    }
+
     /// If this [`CharStar`] is not empty, returns the first byte of the string and a
     /// [`CharStar`] containing the remaining bytes.
     pub fn split_first(&self) -> Option<(u8, &Self)> {
@@ -126,6 +170,16 @@ impl CharStar {
     #[inline]
     pub fn iter(&self) -> Iter {
         self.into_iter()
+    }
+
+    /// Split the string using the provided byte delimiter, returning an iterator
+    /// over the resulting substrings.
+    #[inline]
+    pub fn split(&self, byte: u8) -> Split {
+        Split {
+            charstar: self,
+            byte,
+        }
     }
 }
 
@@ -229,6 +283,23 @@ impl<'a> IntoIterator for &'a CharStar {
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         Iter(self)
+    }
+}
+
+/// An iterator over the bytes of a [`CharStar`], split at a given byte.
+pub struct Split<'a> {
+    charstar: &'a CharStar,
+    byte: u8,
+}
+
+impl<'a> Iterator for Split<'a> {
+    type Item = &'a [u8];
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        let (init, rest) = self.charstar.split_at_char(self.byte)?;
+        self.charstar = rest;
+        Some(init)
     }
 }
 
