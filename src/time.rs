@@ -1,6 +1,6 @@
 //! Time-related types and functions.
 
-use core::ops::{Add, Sub};
+use core::ops::{Add, AddAssign, Sub};
 use core::time::Duration;
 
 use crate::{Errno, Result};
@@ -92,5 +92,12 @@ impl Add<Duration> for Instant {
     #[inline]
     fn add(self, rhs: Duration) -> Self::Output {
         Instant(self.0 + rhs)
+    }
+}
+
+impl AddAssign<Duration> for Instant {
+    #[inline]
+    fn add_assign(&mut self, rhs: Duration) {
+        *self = *self + rhs;
     }
 }
