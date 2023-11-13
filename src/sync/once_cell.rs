@@ -11,6 +11,9 @@ pub struct OnceCell<T> {
     value: UnsafeCell<MaybeUninit<T>>,
 }
 
+unsafe impl<T: Sync + Send> Sync for OnceCell<T> {}
+unsafe impl<T: Send> Send for OnceCell<T> {}
+
 impl<T> OnceCell<T> {
     /// Creates a new [`OnceCell`] without initializing it.
     pub const fn new() -> Self {
