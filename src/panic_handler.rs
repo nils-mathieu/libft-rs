@@ -50,3 +50,8 @@ fn handle_panic(info: &PanicInfo) -> ! {
 // personality to be present in the binary even if it never actually used.
 #[lang = "eh_personality"]
 fn he_personality() {}
+
+// Sometimes needed on Linux.
+#[cfg(target_os = "linux")]
+#[no_mangle]
+extern "C" fn _Unwind_Resume() {}
