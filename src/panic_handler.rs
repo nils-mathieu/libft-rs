@@ -45,8 +45,3 @@ fn handle_panic(info: &PanicInfo) -> ! {
     let fn_ptr: fn(info: &PanicInfo) -> ! = unsafe { core::mem::transmute(fn_ptr) };
     fn_ptr(info)
 }
-
-// On some platforms, there seem to be some generated code forcing the a exception handler
-// personality to be present in the binary even if it never actually used.
-#[lang = "eh_personality"]
-fn he_personality() {}

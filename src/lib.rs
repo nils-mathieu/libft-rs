@@ -1,8 +1,7 @@
 //! My own standard library for 42 school projects.
 
 #![no_std]
-#![allow(internal_features)]
-#![feature(lang_items, extern_types, panic_info_message)]
+#![feature(extern_types, panic_info_message)]
 #![feature(slice_ptr_get)]
 
 mod ctor;
