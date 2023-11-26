@@ -122,9 +122,8 @@ impl ReadBuffer {
         }
 
         let after_move = uninit + self.tail;
-
         if count <= after_move {
-            // Case 2: we have enough spare capacity if we move the consumed part.
+            // Case 2: we have enough spare capacity if we remove the consumed part.
 
             unsafe {
                 core::ptr::copy(
@@ -142,7 +141,7 @@ impl ReadBuffer {
 
         // Case 3: we have to reallocate the buffer.
 
-        let new_capacity = after_move + count;
+        let new_capacity = self.head - self.tail + count;
         let new_data = crate::malloc::allocate(new_capacity)?;
         let new_capacity = new_data.len();
         let new_data = new_data.as_non_null_ptr();
