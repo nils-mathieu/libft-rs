@@ -48,6 +48,7 @@ unsafe impl Lock for NoBlockLock {
 
     #[inline]
     #[allow(clippy::let_and_return)]
+    #[track_caller]
     fn try_lock(&self) -> bool {
         let ret = self
             .state
