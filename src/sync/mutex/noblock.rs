@@ -37,7 +37,7 @@ unsafe impl Lock for NoBlockLock {
     fn lock(&self) {
         if !self.try_lock() {
             #[cfg(debug_assertions)]
-            panic!("lock already taken at {:?}", unsafe {
+            panic!("lock already taken at {}", unsafe {
                 *self.location.load(Relaxed)
             });
 
