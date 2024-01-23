@@ -128,6 +128,30 @@ impl Fd {
             Ok(res as usize)
         }
     }
+
+    /// Reads the contents of the whole file until end-of-file.
+    #[cfg(feature = "alloc")]
+    pub fn read_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> Result<()> {
+        // Read the whole file into a vector.
+        loop {
+            let mut spare_cap = vec.spare_capacity_mut();
+
+            if spare_cap.len() < 128 {
+                if vec.try_reserve(128).is_err() {
+                    break Err(Errno::NO_MEMORY);
+                }
+
+                spare_cap = vec.spare_capacity_mut();
+            }
+
+            match self.read(spare_cap)? {
+                0 => break Ok(()),
+                count => {
+                    unsafe { vec.set_len(vec.len() + count) };
+                }
+            }
+        }
+    }
 }
 
 impl File {

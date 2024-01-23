@@ -4,6 +4,9 @@
 #![feature(extern_types, panic_info_message)]
 #![feature(slice_ptr_get)]
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 mod ctor;
 mod entry_point;
 mod errno;
