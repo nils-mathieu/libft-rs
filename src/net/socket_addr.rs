@@ -133,7 +133,13 @@ impl SocketAddrFamily {
 /// Formats an IPv4 using the provided formatter.
 fn format_ipv4(ip: [u8; 4], port: u16, f: &mut fmt::Formatter) -> fmt::Result {
     let [a, b, c, d] = ip;
-    write!(f, "{a}.{b}.{c}.{d}:{port}")
+    write!(f, "{a}.{b}.{c}.{d}")?;
+
+    if port != 0 {
+        write!(f, ":{}", port)?;
+    }
+
+    Ok(())
 }
 
 /// Formats an IPv6 using the provided formatter.
@@ -186,7 +192,11 @@ fn format_ipv6(ip: [u8; 16], port: u16, f: &mut fmt::Formatter) -> fmt::Result {
             write!(f, ":")?;
         }
     }
-    write!(f, "]:{port}")?;
+    write!(f, "]")?;
+
+    if port != 0 {
+        write!(f, ":{}", port)?;
+    }
 
     Ok(())
 }
