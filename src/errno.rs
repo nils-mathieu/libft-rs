@@ -128,4 +128,6 @@ define_Errno_constants! {
     pub const NO_MEMORY = libc::ENOMEM;
     /// The connection was reset by the peer.
     pub const CONNECTION_RESET = libc::ECONNRESET;
+    /// The connection was aborted by the peer.
+    pub const NO_EXEC = libc::ENOEXEC;
 }
