@@ -77,6 +77,12 @@ impl CharStar {
         unsafe { libc::strnlen(self.as_ptr(), max) }
     }
 
+    /// Returns whether the length of the string is strictly less than `len`.
+    #[inline]
+    pub fn len_less_than(&self, len: usize) -> bool {
+        self.len_bounded(len) != len
+    }
+
     /// Returns the bytes of the string, not including the terminating null byte.
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
@@ -106,6 +112,18 @@ impl CharStar {
     pub fn starts_with(&self, prefix: &[u8]) -> bool {
         let len = self.as_bytes_bounded(prefix.len());
         len == prefix
+    }
+
+    /// If the string starts with the provided prefix, this function returns a
+    /// [`CharStar`] that does not include it.
+    ///
+    /// Otherwise, it returns [`None`].
+    pub fn strip_prefix(&self, prefix: &[u8]) -> Option<&Self> {
+        if self.starts_with(prefix) {
+            Some(unsafe { self.split_at_unchecked(prefix.len()).1 })
+        } else {
+            None
+        }
     }
 
     /// Returns a [`CharStar`] starting at the first byte of the string equal to `c`.
@@ -138,6 +156,21 @@ impl CharStar {
                 Some((init, rest))
             }
         }
+    }
+
+    /// Splits the string at the provided index. The index is not checked to ensure that it
+    /// is within the bounds of the string.
+    ///
+    /// # Safety
+    ///
+    /// The provided index must be within the bounds of the string (meaning `<= len`).
+    pub const unsafe fn split_at_unchecked(&self, index: usize) -> (&[u8], &Self) {
+        let p = self.as_ptr();
+
+        (
+            core::slice::from_raw_parts(p as *const u8, index),
+            Self::from_ptr(p.add(index)),
+        )
     }
 
     /// Returns the index of the first byte of the string equal to `c`.
