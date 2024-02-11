@@ -8,6 +8,7 @@ description = "My personal library for 42 school projects."
 [features]
 default = []
 panic-handler = []
+panic-eh-personality = []
 global-allocator = []
 collections = []
 alloc = []

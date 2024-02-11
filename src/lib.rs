@@ -1,8 +1,10 @@
 //! My own standard library for 42 school projects.
 
 #![no_std]
+#![allow(internal_features)]
 #![feature(extern_types, panic_info_message)]
 #![feature(slice_ptr_get)]
+#![feature(lang_items)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -40,3 +42,7 @@ pub use self::time::*;
 
 #[doc(hidden)]
 pub mod __private;
+
+#[cfg(feature = "panic-eh-personality")]
+#[lang = "eh_personality"]
+extern "C" fn eh_personality() {}
