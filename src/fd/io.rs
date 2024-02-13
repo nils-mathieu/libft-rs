@@ -2,7 +2,9 @@ use core::ffi::c_void;
 use core::fmt;
 use core::mem::MaybeUninit;
 
-use super::OpenFlags;
+use libc::c_uint;
+
+use super::{Mode, OpenFlags};
 use crate::{CharStar, Errno, Fd, File, Result};
 
 impl Fd {
@@ -14,6 +16,23 @@ impl Fd {
     #[inline]
     pub fn open(path: &CharStar, flags: OpenFlags) -> Result<Self> {
         let res = unsafe { libc::open(path.as_ptr(), flags.bits()) };
+        if res < 0 {
+            Err(Errno::last())
+        } else {
+            Ok(Self(res))
+        }
+    }
+
+    /// Opens a file with a specific mode value.
+    ///
+    /// This is only really useful when the `CREATE` flag is set.
+    ///
+    /// # Returns
+    ///
+    /// A [`Fd`] instance representing the opened file.
+    #[inline]
+    pub fn open_with_mode(path: &CharStar, flags: OpenFlags, mode: Mode) -> Result<Self> {
+        let res = unsafe { libc::open(path.as_ptr(), flags.bits(), mode.bits() as c_uint) };
         if res < 0 {
             Err(Errno::last())
         } else {
@@ -164,9 +183,10 @@ impl File {
     /// Creates a new file for writing, truncating it if it already exists.
     #[inline]
     pub fn create(path: &CharStar) -> Result<Self> {
-        Fd::open(
+        Fd::open_with_mode(
             path,
             OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE,
+            Mode::OWNER_READ | Mode::OWNER_WRITE,
         )
         .map(Self)
     }

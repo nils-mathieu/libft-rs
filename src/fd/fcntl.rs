@@ -9,6 +9,7 @@ bitflags! {
     /// Flags that can be passed to [`Fd::open`].
     ///
     /// Describes how the file should be opened.
+    #[derive(Clone, Copy, Default, PartialEq, Eq)]
     pub struct OpenFlags: c_int {
         /// The file should be opened for reading only.
         const READ_ONLY = libc::O_RDONLY;
@@ -24,6 +25,31 @@ bitflags! {
         const APPEND = libc::O_APPEND;
         /// The file should be opened in non-blocking mode.
         const NON_BLOCKING = libc::O_NONBLOCK;
+    }
+}
+
+bitflags! {
+    /// The mode of a file.
+    #[derive(Clone, Copy, Default, PartialEq, Eq)]
+    pub struct Mode: libc::mode_t {
+        /// The file can be read by the owner.
+        const OWNER_READ = libc::S_IRUSR;
+        /// The file can be written by the owner.
+        const OWNER_WRITE = libc::S_IWUSR;
+        /// The file can be executed by the owner.
+        const OWNER_EXECUTE = libc::S_IXUSR;
+        /// The file can be read by the group.
+        const GROUP_READ = libc::S_IRGRP;
+        /// The file can be written by the group.
+        const GROUP_WRITE = libc::S_IWGRP;
+        /// The file can be executed by the group.
+        const GROUP_EXECUTE = libc::S_IXGRP;
+        /// The file can be read by others.
+        const OTHER_READ = libc::S_IROTH;
+        /// The file can be written by others.
+        const OTHER_WRITE = libc::S_IWOTH;
+        /// The file can be executed by others.
+        const OTHER_EXECUTE = libc::S_IXOTH;
     }
 }
 
