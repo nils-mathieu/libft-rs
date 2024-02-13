@@ -52,6 +52,18 @@ impl CharStar {
         &*(data as *const Self)
     }
 
+    /// Creates a new [`CharStar`] instance from the provided bytes.
+    ///
+    /// If the provided slice does not include a null character, [`None`] is returned.
+    #[inline]
+    pub fn from_bytes_until_nul(bytes: &[u8]) -> Option<&Self> {
+        if bytes.contains(&b'\0') {
+            Some(unsafe { Self::from_ptr(bytes.as_ptr() as *const c_char) })
+        } else {
+            None
+        }
+    }
+
     /// Returns a pointer to the first byte of the string.
     #[inline]
     pub const fn as_ptr(&self) -> *const c_char {
