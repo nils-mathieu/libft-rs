@@ -19,6 +19,8 @@ mod misc;
 mod panic_handler;
 mod time;
 
+#[cfg(feature = "alloc")]
+pub mod alloc_ext;
 pub mod charstar;
 #[cfg(feature = "collections")]
 pub mod collections;
