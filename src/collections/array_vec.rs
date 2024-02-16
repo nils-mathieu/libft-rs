@@ -15,7 +15,7 @@ pub struct ArrayVec<T, const N: usize> {
 impl<T, const N: usize> ArrayVec<T, N> {
     /// Creates a new [`ArrayVec`] instance.
     pub const fn new() -> Self {
-        assert!(N < u8::MAX as usize, "N must be less than u8::MAX");
+        assert!(N <= u8::MAX as usize, "N must be less than u8::MAX");
 
         Self {
             array: unsafe { MaybeUninit::uninit().assume_init() },
