@@ -4,6 +4,12 @@ use core::ffi::{c_char, c_int};
 use core::fmt;
 use core::iter::FusedIterator;
 
+#[cfg(not(feature = "dont-restrict-functions"))]
+use crate::fake_libc as c;
+
+#[cfg(feature = "dont-restrict-functions")]
+use libc as c;
+
 /// Creates a [`CharStar`] instance from a string literal.
 ///
 /// # Examples
@@ -49,7 +55,7 @@ impl CharStar {
     /// borrowed for the lifetime `'a`.
     #[inline]
     pub const unsafe fn from_ptr<'a>(data: *const c_char) -> &'a Self {
-        &*(data as *const Self)
+        unsafe { &*(data as *const Self) }
     }
 
     /// Creates a new [`CharStar`] instance from the provided bytes.
@@ -79,14 +85,14 @@ impl CharStar {
     /// Returns the length of the string, not including the terminating null byte.
     #[inline]
     pub fn len(&self) -> usize {
-        unsafe { libc::strlen(self.as_ptr()) }
+        unsafe { c::strlen(self.as_ptr()) }
     }
 
     /// Returns the length of the string, or `max` if the string is longer than `max`. The
     /// terminating null byte is not included in the length.
     #[inline]
     pub fn len_bounded(&self, max: usize) -> usize {
-        unsafe { libc::strnlen(self.as_ptr(), max) }
+        unsafe { c::strnlen(self.as_ptr(), max) }
     }
 
     /// Returns whether the length of the string is strictly less than `len`.
@@ -143,7 +149,7 @@ impl CharStar {
     /// If the character is not found, returns [`None`].
     #[inline]
     pub fn advance_at_char(&self, c: u8) -> Option<&Self> {
-        let p = unsafe { libc::strchr(self.as_ptr(), c as c_int) };
+        let p = unsafe { c::strchr(self.as_ptr(), c as c_int) };
 
         if p.is_null() {
             None
@@ -156,7 +162,7 @@ impl CharStar {
     ///
     /// If the character is not found, returns [`None`].
     pub fn split_at_char(&self, c: u8) -> Option<(&[u8], &Self)> {
-        let p = unsafe { libc::strchr(self.as_ptr(), c as c_int) };
+        let p = unsafe { c::strchr(self.as_ptr(), c as c_int) };
 
         if p.is_null() {
             None
@@ -179,16 +185,18 @@ impl CharStar {
     pub const unsafe fn split_at_unchecked(&self, index: usize) -> (&[u8], &Self) {
         let p = self.as_ptr();
 
-        (
-            core::slice::from_raw_parts(p as *const u8, index),
-            Self::from_ptr(p.add(index)),
-        )
+        unsafe {
+            (
+                core::slice::from_raw_parts(p as *const u8, index),
+                Self::from_ptr(p.add(index)),
+            )
+        }
     }
 
     /// Returns the index of the first byte of the string equal to `c`.
     #[inline]
     pub fn index_of(&self, c: u8) -> Option<usize> {
-        let p = unsafe { libc::strchr(self.as_ptr(), c as c_int) };
+        let p = unsafe { c::strchr(self.as_ptr(), c as c_int) };
 
         if p.is_null() {
             None
@@ -246,7 +254,7 @@ impl fmt::Display for CharStar {
 impl PartialEq<CharStar> for CharStar {
     #[inline]
     fn eq(&self, other: &CharStar) -> bool {
-        unsafe { libc::strcmp(self.as_ptr(), other.as_ptr()) == 0 }
+        unsafe { c::strcmp(self.as_ptr(), other.as_ptr()) == 0 }
     }
 }
 
@@ -286,7 +294,7 @@ impl PartialOrd<CharStar> for CharStar {
 impl Ord for CharStar {
     #[inline]
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-        unsafe { libc::strcmp(self.as_ptr(), other.as_ptr()).cmp(&0) }
+        unsafe { c::strcmp(self.as_ptr(), other.as_ptr()).cmp(&0) }
     }
 }
 

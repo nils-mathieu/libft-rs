@@ -110,3 +110,6 @@ impl Drop for Mmap {
         let _ = unsafe { unmap(self.0, self.1) };
     }
 }
+
+unsafe impl Send for Mmap {}
+unsafe impl Sync for Mmap {}

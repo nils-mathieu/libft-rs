@@ -2,6 +2,7 @@
 
 #![no_std]
 #![allow(internal_features)]
+#![forbid(unsafe_op_in_unsafe_fn)]
 #![feature(extern_types, panic_info_message)]
 #![feature(slice_ptr_get)]
 #![feature(lang_items)]
@@ -12,6 +13,8 @@ extern crate alloc;
 mod ctor;
 mod entry_point;
 mod errno;
+#[cfg(not(feature = "dont-restrict-functions"))]
+mod fake_libc;
 #[cfg(feature = "global-allocator")]
 mod global_allocator;
 mod misc;

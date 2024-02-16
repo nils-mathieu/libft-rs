@@ -73,7 +73,7 @@ impl<T> OnceCell<T> {
     /// The cell must not be initialized.
     #[inline]
     pub unsafe fn set_unchecked(&self, value: T) {
-        (*self.value.get()).write(value);
+        unsafe { (*self.value.get()).write(value) };
         self.initialized.store(true, Release);
     }
 
@@ -85,7 +85,7 @@ impl<T> OnceCell<T> {
     /// The cell must be initialized.
     #[inline]
     pub unsafe fn get_unchecked(&self) -> &T {
-        (*self.value.get()).assume_init_ref()
+        unsafe { (*self.value.get()).assume_init_ref() }
     }
 
     /// Returns the inner value of the cell, or initializes it with the given
