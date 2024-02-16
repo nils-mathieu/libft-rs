@@ -13,7 +13,7 @@ extern crate alloc;
 mod ctor;
 mod entry_point;
 mod errno;
-#[cfg(not(feature = "dont-restrict-functions"))]
+#[cfg(feature = "restrict-functions")]
 mod fake_libc;
 #[cfg(feature = "global-allocator")]
 mod global_allocator;

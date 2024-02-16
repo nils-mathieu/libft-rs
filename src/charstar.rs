@@ -4,10 +4,9 @@ use core::ffi::{c_char, c_int};
 use core::fmt;
 use core::iter::FusedIterator;
 
-#[cfg(not(feature = "dont-restrict-functions"))]
+#[cfg(feature = "restrict-functions")]
 use crate::fake_libc as c;
-
-#[cfg(feature = "dont-restrict-functions")]
+#[cfg(not(feature = "restrict-functions"))]
 use libc as c;
 
 /// Creates a [`CharStar`] instance from a string literal.

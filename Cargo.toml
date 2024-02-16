@@ -6,8 +6,15 @@ edition = "2021"
 description = "My personal library for 42 school projects."
 
 [features]
-# default = ["dont-restrict-functions"]
-dont-restrict-functions = []
+default = [
+    "global-allocator",
+    "panic-handler",
+    "panic-eh-personality",
+    "collections",
+    "alloc",
+]
+
+restrict-functions = []
 panic-handler = []
 panic-eh-personality = []
 global-allocator = []

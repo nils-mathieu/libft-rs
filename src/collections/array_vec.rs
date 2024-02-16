@@ -9,12 +9,14 @@ pub struct ArrayVec<T, const N: usize> {
     /// The backing array.
     array: [MaybeUninit<T>; N],
     /// The number of initialized elements in the vector.
-    init: usize,
+    init: u8,
 }
 
 impl<T, const N: usize> ArrayVec<T, N> {
     /// Creates a new [`ArrayVec`] instance.
     pub const fn new() -> Self {
+        assert!(N < u8::MAX as usize, "N must be less than u8::MAX");
+
         Self {
             array: unsafe { MaybeUninit::uninit().assume_init() },
             init: 0,
@@ -24,7 +26,7 @@ impl<T, const N: usize> ArrayVec<T, N> {
     /// Returns whether the collection is full.
     #[inline(always)]
     pub fn is_full(&self) -> bool {
-        self.init >= N
+        self.init as usize >= N
     }
 
     /// Pushes a new value into the vector without checking if enough space is available.
@@ -34,7 +36,7 @@ impl<T, const N: usize> ArrayVec<T, N> {
     /// The caller must ensure that the vector has enough space to push a new value.
     #[inline(always)]
     pub unsafe fn push_unchecked(&mut self, value: T) {
-        (*self.array.as_mut_ptr().add(self.init)).write(value);
+        unsafe { (*self.array.as_mut_ptr().add(self.init as usize)).write(value) };
         self.init += 1;
     }
 
@@ -69,7 +71,7 @@ impl<T, const N: usize> ArrayVec<T, N> {
             None
         } else {
             self.init -= 1;
-            unsafe { Some((*self.array.as_mut_ptr().add(self.init)).assume_init_read()) }
+            unsafe { Some((*self.array.as_mut_ptr().add(self.init as usize)).assume_init_read()) }
         }
     }
 
@@ -83,13 +85,13 @@ impl<T, const N: usize> ArrayVec<T, N> {
     ///
     /// If the order must be preserved, use [`remove`] instead.
     pub fn swap_remove(&mut self, index: usize) -> Option<T> {
-        if index >= self.init {
+        if index >= self.init as usize {
             return None;
         }
 
         self.init -= 1;
         unsafe {
-            let last = &*self.array.as_ptr().add(self.init);
+            let last = &*self.array.as_ptr().add(self.init as usize);
             let hole = &mut *self.array.as_mut_ptr().add(index);
 
             let ret = hole.assume_init_read();
@@ -103,7 +105,7 @@ impl<T, const N: usize> ArrayVec<T, N> {
     ///
     /// If the order does not matter, use [`swap_remove`] instead.
     pub fn remove(&mut self, index: usize) -> Option<T> {
-        if index >= self.init {
+        if index >= self.init as usize {
             return None;
         }
 
@@ -114,7 +116,7 @@ impl<T, const N: usize> ArrayVec<T, N> {
             core::ptr::copy(
                 self.array.as_ptr().add(index).add(1),
                 self.array.as_mut_ptr().add(index),
-                self.init - index,
+                self.init as usize - index,
             );
 
             Some(ret)
@@ -140,14 +142,15 @@ impl<T, const N: usize> Deref for ArrayVec<T, N> {
 
     #[inline]
     fn deref(&self) -> &[T] {
-        unsafe { core::slice::from_raw_parts(self.array.as_ptr().cast(), self.init) }
+        unsafe { core::slice::from_raw_parts(self.array.as_ptr().cast(), self.init as usize) }
     }
 }
 
 impl<T, const N: usize> DerefMut for ArrayVec<T, N> {
     #[inline]
     fn deref_mut(&mut self) -> &mut [T] {
-        unsafe { core::slice::from_raw_parts_mut(self.array.as_mut_ptr().cast(), self.init) }
+        let init = self.init as usize;
+        unsafe { core::slice::from_raw_parts_mut(self.array.as_mut_ptr().cast(), init) }
     }
 }
 
@@ -186,7 +189,7 @@ impl<T, const N: usize> IntoIterator for ArrayVec<T, N> {
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         IntoIter {
-            tail: self.init,
+            tail: self.init as usize,
             head: 0,
             array: self.into_array(),
         }

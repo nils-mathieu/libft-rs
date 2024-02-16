@@ -39,7 +39,7 @@ pub type Result<T> = ::core::result::Result<T, OutOfMemory>;
 /// will leak.
 #[allow(unused_mut)]
 pub fn allocate(mut size: usize) -> Result<NonNull<[u8]>> {
-    #[cfg(all(target_os = "macos", feature = "dont-restrict-functions"))]
+    #[cfg(all(target_os = "macos", not(feature = "restrict-functions")))]
     {
         size = unsafe { libc::malloc_good_size(size) };
     }
@@ -50,12 +50,12 @@ pub fn allocate(mut size: usize) -> Result<NonNull<[u8]>> {
         return Err(OutOfMemory);
     }
 
-    #[cfg(all(target_os = "macos", feature = "dont-restrict-functions"))]
+    #[cfg(all(target_os = "macos", not(feature = "restrict-functions")))]
     {
         size = unsafe { libc::malloc_size(ptr) };
     }
 
-    #[cfg(all(target_os = "linux", feature = "dont-restrict-functions"))]
+    #[cfg(all(target_os = "linux", not(feature = "restrict-functions")))]
     {
         size = unsafe { libc::malloc_usable_size(ptr) };
     }
