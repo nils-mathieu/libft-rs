@@ -21,6 +21,7 @@ mod misc;
 #[cfg(feature = "panic-handler")]
 mod panic_handler;
 mod time;
+mod user;
 
 #[cfg(feature = "alloc")]
 pub mod alloc_ext;
@@ -45,6 +46,7 @@ pub use self::process::Signal;
 pub use self::sync::mutex::Mutex;
 pub use self::sync::OnceCell;
 pub use self::time::*;
+pub use self::user::*;
 
 #[doc(hidden)]
 pub mod __private;
