@@ -1,5 +1,7 @@
+use core::sync::atomic::AtomicBool;
+#[cfg(debug_assertions)]
+use core::sync::atomic::AtomicPtr;
 use core::sync::atomic::Ordering::{Acquire, Relaxed, Release};
-use core::sync::atomic::{AtomicBool, AtomicPtr};
 
 use super::Lock;
 
