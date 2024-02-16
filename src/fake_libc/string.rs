@@ -1,4 +1,4 @@
-use libc::{c_char, c_int, c_void};
+use libc::{c_char, c_int, c_uint, c_void};
 
 /// Computes the size of the provided null-terminated string.
 pub unsafe fn strlen(x: *const c_char) -> usize {
@@ -29,7 +29,7 @@ pub unsafe fn strchr(mut s: *const c_char, c: c_int) -> *const c_char {
         if si == 0 {
             return core::ptr::null();
         }
-        if si == c as c_char {
+        if si == c as c_uint as c_char {
             return s;
         }
         s = unsafe { s.add(1) };
@@ -73,7 +73,7 @@ pub unsafe fn memset(s: *mut c_void, c: c_int, n: usize) -> *mut c_void {
 
     unsafe {
         while n > 0 {
-            *s = c as u8;
+            *s = c as c_uint as u8;
             s = s.add(1);
             n -= 1;
         }
