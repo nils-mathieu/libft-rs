@@ -27,6 +27,7 @@ pub mod alloc_ext;
 pub mod charstar;
 #[cfg(feature = "collections")]
 pub mod collections;
+pub mod dylib;
 pub mod fd;
 pub mod malloc;
 pub mod mmap;
