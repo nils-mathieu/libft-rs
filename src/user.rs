@@ -17,4 +17,10 @@ impl Uid {
     pub fn effective() -> Self {
         Self(unsafe { libc::geteuid() })
     }
+
+    /// Returns whether this user is the root user.
+    #[inline(always)]
+    pub const fn is_root(self) -> bool {
+        self.0 == Self::ROOT.0
+    }
 }
