@@ -353,6 +353,3 @@ impl<'a> Iterator for Split<'a> {
         Some(init)
     }
 }
-
-/// A string to use when invalid UTF-8 is encountered.
-const INVALID_UTF8: &str = "<invalid utf-8>";
