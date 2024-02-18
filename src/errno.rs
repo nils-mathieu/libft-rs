@@ -17,7 +17,7 @@ pub struct Errno(c_int);
 impl Errno {
     /// Returns the value of the `errno` global variable on the current thread.
     #[inline]
-    #[cfg(feature = "errno")]
+    #[cfg(not(feature = "restrict-errno"))]
     pub fn last() -> Self {
         #[cfg(target_os = "macos")]
         {
@@ -32,17 +32,17 @@ impl Errno {
 
     /// Returns the `SUCCESS` error code.
     ///
-    /// This function is used as a fallback when the `errno` feature is
-    /// disabled.
+    /// This function is used as a fallback when the `restrict-errno` feature is
+    /// enabled.
     #[inline]
-    #[cfg(not(feature = "errno"))]
+    #[cfg(feature = "restrict-errno")]
     pub fn last() -> Self {
         Self::SUCCESS
     }
 
     /// Sets the value of the `errno` global variable on the current thread.
     #[inline]
-    #[cfg(feature = "errno")]
+    #[cfg(not(feature = "restrict-errno"))]
     pub fn make_last(self) {
         #[cfg(target_os = "macos")]
         unsafe {
@@ -57,10 +57,10 @@ impl Errno {
 
     /// Does nothing.
     ///
-    /// This function is used as a fallback when the `errno` feature is
-    /// disabled.
+    /// This function is used as a fallback when the `restrict-errno` feature is
+    /// enabled.
     #[inline]
-    #[cfg(not(feature = "errno"))]
+    #[cfg(feature = "restrict-errno")]
     pub fn make_last(self) {}
 
     /// Creates a new [`Errno`] instance from the provided raw value.
