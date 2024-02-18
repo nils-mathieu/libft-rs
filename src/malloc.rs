@@ -16,7 +16,7 @@ impl fmt::Display for OutOfMemory {
 impl From<OutOfMemory> for crate::Errno {
     #[inline]
     fn from(_value: OutOfMemory) -> Self {
-        Self::NO_MEMORY
+        Self::NOMEM
     }
 }
 

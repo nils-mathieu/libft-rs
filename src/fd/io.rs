@@ -157,7 +157,7 @@ impl Fd {
 
             if spare_cap.len() < 128 {
                 if vec.try_reserve(128).is_err() {
-                    break Err(Errno::NO_MEMORY);
+                    break Err(Errno::NOMEM);
                 }
 
                 spare_cap = vec.spare_capacity_mut();
