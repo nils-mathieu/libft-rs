@@ -44,6 +44,9 @@ unsafe impl Sync for CharStar {}
 unsafe impl Send for CharStar {}
 
 impl CharStar {
+    /// The empty string.
+    pub const EMPTY: &'static Self = charstar!("");
+
     /// Creates a new [`CharStar`] instance from the provided pointer.
     ///
     /// # Safety
