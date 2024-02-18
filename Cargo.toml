@@ -12,6 +12,7 @@ default = [
     "panic-eh-personality",
     "collections",
     "alloc",
+    "errno",
 ]
 
 restrict-functions = []
@@ -20,6 +21,7 @@ panic-eh-personality = []
 global-allocator = []
 collections = []
 alloc = []
+errno = []
 
 [dependencies]
 libc = { version = "0.2", default-features = false }

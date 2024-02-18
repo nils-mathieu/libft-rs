@@ -17,6 +17,7 @@ pub struct Errno(c_int);
 impl Errno {
     /// Returns the value of the `errno` global variable on the current thread.
     #[inline]
+    #[cfg(feature = "errno")]
     pub fn last() -> Self {
         #[cfg(target_os = "macos")]
         {
@@ -29,8 +30,19 @@ impl Errno {
         }
     }
 
+    /// Returns the `SUCCESS` error code.
+    ///
+    /// This function is used as a fallback when the `errno` feature is
+    /// disabled.
+    #[inline]
+    #[cfg(not(feature = "errno"))]
+    pub fn last() -> Self {
+        Self::SUCCESS
+    }
+
     /// Sets the value of the `errno` global variable on the current thread.
     #[inline]
+    #[cfg(feature = "errno")]
     pub fn make_last(self) {
         #[cfg(target_os = "macos")]
         unsafe {
@@ -42,6 +54,14 @@ impl Errno {
             *libc::__errno_location() = self.0
         }
     }
+
+    /// Does nothing.
+    ///
+    /// This function is used as a fallback when the `errno` feature is
+    /// disabled.
+    #[inline]
+    #[cfg(not(feature = "errno"))]
+    pub fn make_last(self) {}
 
     /// Creates a new [`Errno`] instance from the provided raw value.
     #[inline]
@@ -119,15 +139,15 @@ define_Errno_constants! {
     /// Indicates that no error occured.
     pub const SUCCESS = 0;
     /// Indicates that an invalid argument was provided.
-    pub const INVALID_VALUE = libc::EINVAL;
+    pub const INVAL = libc::EINVAL;
     /// Indicates that the provided buffer was too small.
-    pub const WOULD_BLOCK = libc::EWOULDBLOCK;
+    pub const WOULDBLOCK = libc::EWOULDBLOCK;
     /// Indicates that the operation was interrupted by a signal.
-    pub const INTERRUPTED = libc::EINTR;
+    pub const INTR = libc::EINTR;
     /// The system is out of memory.
-    pub const NO_MEMORY = libc::ENOMEM;
+    pub const NOMEM = libc::ENOMEM;
     /// The connection was reset by the peer.
-    pub const CONNECTION_RESET = libc::ECONNRESET;
+    pub const CONNRESET = libc::ECONNRESET;
     /// The connection was aborted by the peer.
-    pub const NO_EXEC = libc::ENOEXEC;
+    pub const NOEXEC = libc::ENOEXEC;
 }
