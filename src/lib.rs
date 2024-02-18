@@ -43,7 +43,7 @@ pub use self::fd::{Fd, File};
 pub use self::misc::*;
 #[cfg(feature = "panic-handler")]
 pub use self::panic_handler::set_panic_handler;
-pub use self::process::Signal;
+pub use self::process::{Pid, Signal};
 pub use self::sync::mutex::Mutex;
 pub use self::sync::OnceCell;
 pub use self::time::*;
