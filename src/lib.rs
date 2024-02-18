@@ -35,6 +35,7 @@ pub mod mmap;
 pub mod net;
 pub mod process;
 pub mod sync;
+pub mod utils;
 
 pub use self::charstar::CharStar;
 pub use self::errno::{Errno, Result};

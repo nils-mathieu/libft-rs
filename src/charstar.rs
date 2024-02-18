@@ -6,6 +6,7 @@ use core::iter::FusedIterator;
 
 #[cfg(feature = "restrict-functions")]
 use crate::fake_libc as c;
+use crate::utils::display_bytes;
 #[cfg(not(feature = "restrict-functions"))]
 use libc as c;
 
@@ -237,16 +238,14 @@ impl CharStar {
 
 impl fmt::Debug for CharStar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.as_str() {
-            Some(s) => fmt::Debug::fmt(s, f),
-            None => f.write_str(INVALID_UTF8),
-        }
+        fmt::Debug::fmt(display_bytes(self.as_bytes()), f)
     }
 }
 
 impl fmt::Display for CharStar {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.pad(self.as_str().unwrap_or(INVALID_UTF8))
+        fmt::Display::fmt(display_bytes(self.as_bytes()), f)
     }
 }
 
