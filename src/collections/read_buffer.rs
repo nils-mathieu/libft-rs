@@ -3,7 +3,7 @@
 use core::mem::MaybeUninit;
 use core::ptr::NonNull;
 
-use crate::malloc::Result;
+use crate::{Fd, Result};
 
 /// A collection of buffers that can be used to read data from a file descriptor efficiently.
 ///
@@ -186,6 +186,19 @@ impl ReadBuffer {
     ///
     /// The consumed bytes may be overwritten by the next read operation.
     ///
+    /// # Panics
+    ///
+    /// This function panics if `count` is greater than `pending().len()`.
+    #[inline]
+    pub fn consume(&mut self, count: usize) {
+        assert!(self.tail + count <= self.head);
+        unsafe { self.consume_unchecked(count) }
+    }
+
+    /// Consumes `count` bytes from the buffer, marking them as "unneeded".
+    ///
+    /// The consumed bytes may be overwritten by the next read operation.
+    ///
     /// # Safety
     ///
     /// `count` must be less than or equal to `pending().len()`.
@@ -194,8 +207,6 @@ impl ReadBuffer {
     ///
     /// This function returns the part of the buffer that has been consumed.
     pub unsafe fn consume_unchecked(&mut self, count: usize) {
-        debug_assert!(self.tail + count <= self.head);
-
         self.tail += count;
 
         // We just consumed the whole buffer, we can reset
@@ -209,13 +220,12 @@ impl ReadBuffer {
 
     /// Fills the buffer with additional data by reading from the provided file descriptor,
     /// returning the part of the buffer that has been filled.
-    pub fn fill_with_fd(&mut self, fd: crate::Fd) -> crate::Result<&[u8]> {
+    pub fn fill_with_fd(&mut self, fd: Fd) -> Result<usize> {
         let count = fd.read(self.spare_capacity_mut())?;
 
         unsafe {
-            let ptr = self.data.as_ptr().add(self.head);
             self.assume_init(count);
-            Ok(core::slice::from_raw_parts(ptr, count))
+            Ok(count)
         }
     }
 }
