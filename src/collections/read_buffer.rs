@@ -220,6 +220,16 @@ impl ReadBuffer {
 
     /// Fills the buffer with additional data by reading from the provided file descriptor,
     /// returning the part of the buffer that has been filled.
+    ///
+    /// # Remarks
+    ///
+    /// This function doesn't attempt to allocate more memory if the buffer
+    /// is full. Instead, it will succeed with a size of 0.
+    ///
+    /// One should generall call [`reserve`] before calling this function to make sure
+    /// that at least *some* additional space is available.
+    ///
+    /// [`reserve`]: ReadBuffer::reserve
     pub fn fill_with_fd(&mut self, fd: Fd) -> Result<usize> {
         let count = fd.read(self.spare_capacity_mut())?;
 
