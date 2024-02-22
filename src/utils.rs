@@ -12,7 +12,7 @@ impl core::fmt::Debug for DisplayBytes {
         while !bytes.is_empty() {
             match core::str::from_utf8(bytes) {
                 Ok(s) => {
-                    f.write_str(s)?;
+                    write!(f, "{}", s.escape_debug())?;
                     break;
                 }
                 Err(e) => {
