@@ -17,6 +17,8 @@ impl Signal {
     pub const CONT: Self = Self(libc::SIGCONT);
     /// The `SIGINT` signal.
     pub const INT: Self = Self(libc::SIGINT);
+    /// The `SIGQUIT` signal.
+    pub const QUIT: Self = Self(libc::SIGQUIT);
 }
 
 impl Signal {
