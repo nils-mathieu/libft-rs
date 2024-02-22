@@ -51,11 +51,19 @@ impl Signal {
     /// This function panics if `self` is not a valid signal.
     #[inline]
     #[track_caller]
-    pub fn set_handler(self, handler: impl Into<SigHandler>) -> SigHandler {
+    pub fn set_handler(self, handler: SigHandler) -> SigHandler {
         handler
-            .into()
             .install(self)
             .unwrap_or_else(|| panic!("{:?} is not a valid signal", self))
+    }
+
+    /// Like [`set_handler`], but takes a function pointer directly.
+    ///
+    /// [`set_handler`]: Self::set_handler
+    #[inline]
+    #[track_caller]
+    pub fn set_handler_fn(self, f: extern "C" fn(Signal)) -> SigHandler {
+        self.set_handler(SigHandler::from_fn(f))
     }
 }
 
