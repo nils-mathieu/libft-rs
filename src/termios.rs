@@ -146,31 +146,31 @@ impl Termios {
     /// Returns the input flags.
     #[inline]
     pub fn input_mut(&mut self) -> &mut InputFlags {
-        unsafe { &mut *(self as *mut Self as *mut InputFlags) }
+        unsafe { &mut *(&mut self.0.c_iflag as *mut _ as *mut _) }
     }
 
     /// Returns the output flags.
     #[inline]
     pub fn output_mut(&mut self) -> &mut OutputFlags {
-        unsafe { &mut *(self as *mut Self as *mut OutputFlags) }
+        unsafe { &mut *(&mut self.0.c_oflag as *mut _ as *mut _) }
     }
 
     /// Returns the control flags.
     #[inline]
     pub fn control_mut(&mut self) -> &mut ControlFlags {
-        unsafe { &mut *(self as *mut Self as *mut ControlFlags) }
+        unsafe { &mut *(&mut self.0.c_cflag as *mut _ as *mut _) }
     }
 
     /// Returns the local flags.
     #[inline]
     pub fn local_mut(&mut self) -> &mut LocalFlags {
-        unsafe { &mut *(self as *mut Self as *mut LocalFlags) }
+        unsafe { &mut *(&mut self.0.c_lflag as *mut _ as *mut _) }
     }
 
     /// Returns the special characters.
     #[inline]
     pub fn special_characters_mut(&mut self) -> &mut SpecialCharacters {
-        unsafe { &mut *(self as *mut Self as *mut SpecialCharacters) }
+        unsafe { &mut *(&mut self.0.c_cc as *mut _ as *mut _) }
     }
 }
 
