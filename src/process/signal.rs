@@ -40,31 +40,82 @@ impl Signal {
         unsafe { libc::raise(self.as_raw()) };
     }
 
-    /// Marks this signal as being ignored.
-    #[inline]
-    pub fn set_handler_ignore(self) -> OpaqueSigHandler {
-        let ret = unsafe { libc::signal(self.as_raw(), libc::SIG_IGN) };
-        debug_assert!(ret != libc::SIG_ERR);
-        OpaqueSigHandler(ret)
-    }
-
-    /// Sets the handler for this signal to the default handler.
-    #[inline]
-    pub fn set_handler_default(self) -> OpaqueSigHandler {
-        let ret = unsafe { libc::signal(self.as_raw(), libc::SIG_DFL) };
-        debug_assert!(ret != libc::SIG_ERR);
-        OpaqueSigHandler(ret)
-    }
-
     /// Sets the handler for this signal to the provided handler.
+    ///
+    /// # Returns
+    ///
+    /// The previous signal handler is returned.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if `self` is not a valid signal.
     #[inline]
-    pub fn set_handler(self, handler: extern "C" fn()) -> OpaqueSigHandler {
-        let ret = unsafe { libc::signal(self.as_raw(), handler as _) };
-        debug_assert!(ret != libc::SIG_ERR);
-        OpaqueSigHandler(ret)
+    #[track_caller]
+    pub fn set_handler(self, handler: SigHandler) -> SigHandler {
+        handler
+            .install(self)
+            .unwrap_or_else(|| panic!("{:?} is not a valid signal", self))
     }
 }
 
 /// An opaque signal handler.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct OpaqueSigHandler(libc::sighandler_t);
+pub struct SigHandler(libc::sighandler_t);
+
+impl SigHandler {
+    /// The default signal handler.
+    pub const DEFAULT: Self = Self(libc::SIG_DFL);
+
+    /// The signal handler that ignores the signal.
+    pub const IGNORE: Self = Self(libc::SIG_IGN);
+
+    /// Creates a new [`SigHandler`] from the provided raw signal handler.
+    #[inline]
+    pub fn from_raw(handler: libc::sighandler_t) -> Self {
+        Self(handler)
+    }
+
+    /// Returns the raw signal handler.
+    #[inline]
+    pub fn as_raw(&self) -> libc::sighandler_t {
+        self.0
+    }
+
+    /// Creates a new [`SigHandler`] from the provided function pointer.
+    #[inline]
+    pub fn from_fn(f: extern "C" fn(Signal)) -> Self {
+        Self(f as _)
+    }
+
+    /// Installs this signal handler for the provided signal.
+    ///
+    /// # Errors
+    ///
+    /// This function fails if the provided [`Signal`] is invalid.
+    #[inline]
+    pub fn install(self, signal: Signal) -> Option<SigHandler> {
+        let ret = unsafe { libc::signal(signal.as_raw(), self.0) };
+
+        if ret == libc::SIG_ERR {
+            None
+        } else {
+            Some(SigHandler(ret))
+        }
+    }
+
+    /// Returns a guard that installs this [`SigHandler`] when dropped.
+    #[inline]
+    pub fn guard(self, signal: Signal) -> SigHandlerGuard {
+        SigHandlerGuard(signal, self)
+    }
+}
+
+/// A guard that installs a specific [`SigHandler`] when dropped.
+#[derive(Debug)]
+pub struct SigHandlerGuard(Signal, SigHandler);
+
+impl Drop for SigHandlerGuard {
+    fn drop(&mut self) {
+        self.0.set_handler(self.1);
+    }
+}
