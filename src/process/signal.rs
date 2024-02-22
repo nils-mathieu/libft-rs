@@ -51,8 +51,9 @@ impl Signal {
     /// This function panics if `self` is not a valid signal.
     #[inline]
     #[track_caller]
-    pub fn set_handler(self, handler: SigHandler) -> SigHandler {
+    pub fn set_handler(self, handler: impl Into<SigHandler>) -> SigHandler {
         handler
+            .into()
             .install(self)
             .unwrap_or_else(|| panic!("{:?} is not a valid signal", self))
     }
@@ -107,6 +108,13 @@ impl SigHandler {
     #[inline]
     pub fn guard(self, signal: Signal) -> SigHandlerGuard {
         SigHandlerGuard(signal, self)
+    }
+}
+
+impl From<extern "C" fn(Signal)> for SigHandler {
+    #[inline]
+    fn from(f: extern "C" fn(Signal)) -> Self {
+        Self::from_fn(f)
     }
 }
 
