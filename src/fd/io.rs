@@ -148,6 +148,21 @@ impl Fd {
         }
     }
 
+    /// Reads a single byte from the file descriptor.
+    ///
+    /// If the file descriptor is exhausted, this function will return `None`.
+    #[inline]
+    pub fn read_one(self) -> Result<Option<u8>> {
+        let mut buffer = MaybeUninit::uninit();
+
+        match self.read(core::slice::from_mut(&mut buffer)) {
+            Ok(0) => Ok(None),
+            Ok(1) => Ok(Some(unsafe { buffer.assume_init() })),
+            Ok(_) => unsafe { core::hint::unreachable_unchecked() },
+            Err(e) => Err(e),
+        }
+    }
+
     /// Performs a single read in the provided buffer's spare capacity.
     ///
     /// If the buffer has no more spare capacity, this function will
