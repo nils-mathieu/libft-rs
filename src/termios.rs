@@ -105,6 +105,17 @@ impl Termios {
         }
     }
 
+    /// Guards the [`Termios`] structure of the provided file descriptor.
+    ///
+    /// When the guard is dropped, the original [`Termios`] structure is restored.
+    #[inline]
+    pub fn guard(&self, fd: Fd) -> RestoreTermios {
+        RestoreTermios {
+            fd,
+            termios: self.get(fd).unwrap(),
+        }
+    }
+
     /// Returns the input flags.
     #[inline]
     pub fn input(&self) -> InputFlags {
@@ -272,5 +283,18 @@ bitflags! {
         const ECHO_NL = libc::ECHONL;
         /// Disables flusing the input/output when signal characters are received.
         const NO_FLUSH = libc::NOFLSH;
+    }
+}
+
+/// Restores a [`Termios`] structure.
+pub struct RestoreTermios<'a> {
+    pub termios: &'a Termios,
+    pub fd: Fd,
+}
+
+impl Drop for RestoreTermios<'_> {
+    #[inline]
+    fn drop(&mut self) {
+        let _ = self.termios.set(self.fd, SetAt::Flush);
     }
 }
