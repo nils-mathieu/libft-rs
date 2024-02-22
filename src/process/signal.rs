@@ -40,19 +40,29 @@ impl Signal {
 
     /// Marks this signal as being ignored.
     #[inline]
-    pub fn set_handler_ignore(self) {
-        unsafe { libc::signal(self.as_raw(), libc::SIG_IGN) };
+    pub fn set_handler_ignore(self) -> OpaqueSigHandler {
+        let ret = unsafe { libc::signal(self.as_raw(), libc::SIG_IGN) };
+        debug_assert!(ret != libc::SIG_ERR);
+        OpaqueSigHandler(ret)
     }
 
     /// Sets the handler for this signal to the default handler.
     #[inline]
-    pub fn set_handler_default(self) {
-        unsafe { libc::signal(self.as_raw(), libc::SIG_DFL) };
+    pub fn set_handler_default(self) -> OpaqueSigHandler {
+        let ret = unsafe { libc::signal(self.as_raw(), libc::SIG_DFL) };
+        debug_assert!(ret != libc::SIG_ERR);
+        OpaqueSigHandler(ret)
     }
 
     /// Sets the handler for this signal to the provided handler.
     #[inline]
-    pub fn set_handler(self, handler: extern "C" fn()) {
-        unsafe { libc::signal(self.as_raw(), handler as _) };
+    pub fn set_handler(self, handler: extern "C" fn()) -> OpaqueSigHandler {
+        let ret = unsafe { libc::signal(self.as_raw(), handler as _) };
+        debug_assert!(ret != libc::SIG_ERR);
+        OpaqueSigHandler(ret)
     }
 }
+
+/// An opaque signal handler.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct OpaqueSigHandler(libc::sighandler_t);
