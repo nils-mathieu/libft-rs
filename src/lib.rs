@@ -35,6 +35,7 @@ pub mod mmap;
 pub mod net;
 pub mod process;
 pub mod sync;
+pub mod termios;
 pub mod utils;
 
 pub use self::charstar::CharStar;
