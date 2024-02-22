@@ -139,8 +139,8 @@ impl Termios {
 
     /// Returns the special characters.
     #[inline]
-    pub fn special_characters(&self) -> SpecialCharacters {
-        SpecialCharacters(self.0.c_cc)
+    pub fn special_characters(&self) -> &SpecialCharacters {
+        unsafe { &*(&self.0.c_cc as *const _ as *const _) }
     }
 
     /// Returns the input flags.
