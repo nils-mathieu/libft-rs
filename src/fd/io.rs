@@ -148,26 +148,38 @@ impl Fd {
         }
     }
 
-    /// Reads the contents of the whole file until end-of-file.
+    /// Performs a single read in the provided buffer's spare capacity.
+    ///
+    /// If the buffer has no more spare capacity, this function will
+    /// *not* attempt to allocate more memory.
+    ///
+    /// The number of bytes read is returned.
+    #[cfg(feature = "alloc")]
+    #[inline]
+    pub fn read_once_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> Result<usize> {
+        let spare_cap = vec.spare_capacity_mut();
+        match self.read(spare_cap) {
+            Ok(count) => {
+                unsafe { vec.set_len(vec.len() + count) };
+                Ok(count)
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Reads the contents of the whole file until end-of-file or until an error occurs.
     #[cfg(feature = "alloc")]
     pub fn read_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> Result<()> {
         // Read the whole file into a vector.
         loop {
-            let mut spare_cap = vec.spare_capacity_mut();
-
-            if spare_cap.len() < 128 {
-                if vec.try_reserve(128).is_err() {
-                    break Err(Errno::NOMEM);
-                }
-
-                spare_cap = vec.spare_capacity_mut();
+            if vec.spare_capacity_mut().len() < 128 && vec.try_reserve(128).is_err() {
+                break Err(Errno::NOMEM);
             }
 
-            match self.read(spare_cap)? {
-                0 => break Ok(()),
-                count => {
-                    unsafe { vec.set_len(vec.len() + count) };
-                }
+            match self.read_once_to_vec(vec) {
+                Ok(0) => break Ok(()),
+                Ok(_) => {}
+                Err(e) => break Err(e),
             }
         }
     }
