@@ -110,10 +110,7 @@ impl Termios {
     /// When the guard is dropped, the original [`Termios`] structure is restored.
     #[inline]
     pub fn guard(&self, fd: Fd) -> RestoreTermios {
-        RestoreTermios {
-            fd,
-            termios: self.get(fd).unwrap(),
-        }
+        RestoreTermios { fd, termios: self }
     }
 
     /// Returns the input flags.
