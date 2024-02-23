@@ -25,6 +25,7 @@ mod user;
 
 #[cfg(feature = "alloc")]
 pub mod alloc_ext;
+pub mod ansi;
 pub mod charstar;
 #[cfg(feature = "collections")]
 pub mod collections;
