@@ -5,61 +5,123 @@ use bitflags::bitflags;
 use crate::{Fd, Result};
 
 /// Represents the list of special characters used by the terminal.
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct SpecialCharacters([libc::cc_t; libc::NCCS]);
 
 impl SpecialCharacters {
-    /// Returns the end-of-file character.
     #[inline]
-    pub const fn end_of_file(&self) -> u8 {
+    pub const fn eof(&self) -> u8 {
         self.0[libc::VEOF]
     }
 
-    /// Returns the character caracterizing the end of the line.
     #[inline]
-    pub const fn end_of_line(&self) -> u8 {
+    pub const fn eol(&self) -> u8 {
         self.0[libc::VEOL]
     }
 
-    /// Another end-of-line character.
     #[inline]
-    pub const fn end_of_line2(&self) -> u8 {
+    pub const fn eol2(&self) -> u8 {
         self.0[libc::VEOL2]
     }
 
-    /// The character used to erase the last character.
     #[inline]
     pub const fn erase(&self) -> u8 {
         self.0[libc::VERASE]
     }
 
-    /// The interrupt character.
-    ///
-    /// Normally triggers a `SIGINT`.
     #[inline]
-    pub const fn intr(&self) -> u8 {
-        self.0[libc::VINTR]
+    pub const fn werase(&self) -> u8 {
+        self.0[libc::VWERASE]
     }
 
-    /// The character used to kill the current line.
     #[inline]
     pub const fn kill(&self) -> u8 {
         self.0[libc::VKILL]
     }
 
-    /// The character used to quit the current process.
-    ///
-    /// Normally triggers a `SIGQUIT`.
+    #[inline]
+    pub const fn reprint(&self) -> u8 {
+        self.0[libc::VREPRINT]
+    }
+
+    #[inline]
+    pub const fn intr(&self) -> u8 {
+        self.0[libc::VINTR]
+    }
+
     #[inline]
     pub const fn quit(&self) -> u8 {
         self.0[libc::VQUIT]
     }
 
-    /// The character used to erase a whole word.
+    pub const fn susp(&self) -> u8 {
+        self.0[libc::VSUSP]
+    }
+
     #[inline]
-    pub const fn word_erase(&self) -> u8 {
-        self.0[libc::VWERASE]
+    pub const fn dsusp(&self) -> u8 {
+        self.0[libc::VDSUSP]
+    }
+
+    #[inline]
+    pub const fn start(&self) -> u8 {
+        self.0[libc::VSTART]
+    }
+
+    #[inline]
+    pub const fn stop(&self) -> u8 {
+        self.0[libc::VSTOP]
+    }
+
+    #[inline]
+    pub const fn lnext(&self) -> u8 {
+        self.0[libc::VLNEXT]
+    }
+
+    #[inline]
+    pub const fn discard(&self) -> u8 {
+        self.0[libc::VDISCARD]
+    }
+
+    #[inline]
+    pub const fn min(&self) -> u8 {
+        self.0[libc::VMIN]
+    }
+
+    #[inline]
+    pub const fn time(&self) -> u8 {
+        self.0[libc::VTIME]
+    }
+
+    #[inline]
+    pub const fn status(&self) -> u8 {
+        self.0[libc::VSTATUS]
+    }
+}
+
+impl core::fmt::Debug for SpecialCharacters {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        f.debug_struct("SpecialCharacters")
+            .field("eof", &self.eof())
+            .field("eol", &self.eol())
+            .field("eol2", &self.eol2())
+            .field("erase", &self.erase())
+            .field("werase", &self.werase())
+            .field("kill", &self.kill())
+            .field("reprint", &self.reprint())
+            .field("intr", &self.intr())
+            .field("quit", &self.quit())
+            .field("susp", &self.susp())
+            .field("dsusp", &self.dsusp())
+            .field("start", &self.start())
+            .field("stop", &self.stop())
+            .field("lnext", &self.lnext())
+            .field("discard", &self.discard())
+            .field("min", &self.min())
+            .field("time", &self.time())
+            .field("status", &self.status())
+            .finish()
     }
 }
 
