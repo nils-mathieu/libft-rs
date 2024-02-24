@@ -60,11 +60,6 @@ impl SpecialCharacters {
     }
 
     #[inline]
-    pub const fn dsusp(&self) -> u8 {
-        self.0[libc::VDSUSP]
-    }
-
-    #[inline]
     pub const fn start(&self) -> u8 {
         self.0[libc::VSTART]
     }
@@ -93,16 +88,12 @@ impl SpecialCharacters {
     pub const fn time(&self) -> u8 {
         self.0[libc::VTIME]
     }
-
-    #[inline]
-    pub const fn status(&self) -> u8 {
-        self.0[libc::VSTATUS]
-    }
 }
 
 impl core::fmt::Debug for SpecialCharacters {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         f.debug_struct("SpecialCharacters")
+            .field("eof", &self.eof())
             .field("eof", &self.eof())
             .field("eol", &self.eol())
             .field("eol2", &self.eol2())
@@ -113,14 +104,12 @@ impl core::fmt::Debug for SpecialCharacters {
             .field("intr", &self.intr())
             .field("quit", &self.quit())
             .field("susp", &self.susp())
-            .field("dsusp", &self.dsusp())
             .field("start", &self.start())
             .field("stop", &self.stop())
             .field("lnext", &self.lnext())
             .field("discard", &self.discard())
             .field("min", &self.min())
             .field("time", &self.time())
-            .field("status", &self.status())
             .finish()
     }
 }
