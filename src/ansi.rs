@@ -273,32 +273,56 @@ pub trait TerminalExt {
 impl TerminalExt for Fd {
     #[inline]
     fn move_cursor_up(self, count: u32) -> Result<()> {
-        write!(self, "\x1b[{}A", count)
+        if count != 0 {
+            write!(self, "\x1b[{}A", count)
+        } else {
+            Ok(())
+        }
     }
 
     #[inline]
     fn move_cursor_down(self, count: u32) -> Result<()> {
-        write!(self, "\x1b[{}B", count)
+        if count != 0 {
+            write!(self, "\x1b[{}B", count)
+        } else {
+            Ok(())
+        }
     }
 
     #[inline]
     fn move_cursor_left(self, count: u32) -> Result<()> {
-        write!(self, "\x1b[{}D", count)
+        if count != 0 {
+            write!(self, "\x1b[{}D", count)
+        } else {
+            Ok(())
+        }
     }
 
     #[inline]
     fn move_cursor_right(self, count: u32) -> Result<()> {
-        write!(self, "\x1b[{}C", count)
+        if count != 0 {
+            write!(self, "\x1b[{}C", count)
+        } else {
+            Ok(())
+        }
     }
 
     #[inline]
     fn move_cursor_line_down(self, count: u32) -> Result<()> {
-        write!(self, "\x1b[{}E", count)
+        if count != 0 {
+            write!(self, "\x1b[{}E", count)
+        } else {
+            Ok(())
+        }
     }
 
     #[inline]
     fn move_cursor_line_up(self, count: u32) -> Result<()> {
-        write!(self, "\x1b[{}F", count)
+        if count != 0 {
+            write!(self, "\x1b[{}F", count)
+        } else {
+            Ok(())
+        }
     }
 
     #[inline]
