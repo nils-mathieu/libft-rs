@@ -1,51 +1,31 @@
-use super::Lock;
+/// A mutex implementation based on `libpthread`.
+#[doc(alias = "pthread_mutex_t")]
+pub struct PthreadMutex(libc::pthread_mutex_t);
 
-/// A raw mutex based on `pthread`'s.
-pub struct PthreadLock(libc::pthread_mutex_t);
-
-unsafe impl Send for PthreadLock {}
-unsafe impl Sync for PthreadLock {}
-
-unsafe impl Lock for PthreadLock {
-    const UNLOCKED: Self = Self(libc::PTHREAD_MUTEX_INITIALIZER);
-
-    // I don't actually know whether pthread allows its mutexes to be
-    // used on multiple threads if the before-after ordering can be
-    // guaranteed.
-    type GuardMarker = *mut ();
-
+impl PthreadMutex {
+    /// Returns a raw pointer to the inner `pthread_mutex_t`.
     #[inline]
-    fn try_lock(&self) -> bool {
-        unsafe { libc::pthread_mutex_trylock(&self.0 as *const _ as *mut _) == 0 }
+    pub const fn as_ptr(&self) -> *const libc::pthread_mutex_t {
+        &self.0
     }
+}
+
+unsafe impl super::RawMutex for PthreadMutex {
+    const UNLOCKED: Self = PthreadMutex(libc::PTHREAD_MUTEX_INITIALIZER);
 
     #[inline]
     fn lock(&self) {
-        let ret = unsafe { libc::pthread_mutex_lock(&self.0 as *const _ as *mut _) };
-        debug_assert_eq!(ret, 0);
-    }
-
-    #[inline]
-    fn is_locked(&self) -> bool {
-        if self.try_lock() {
-            unsafe { self.unlock() };
-            true
-        } else {
-            false
-        }
+        let ret = unsafe { libc::pthread_mutex_lock(self.as_ptr().cast_mut()) };
+        assert!(ret == 0, "pthread_mutex_lock failed");
     }
 
     #[inline]
     unsafe fn unlock(&self) {
-        let ret = unsafe { libc::pthread_mutex_unlock(&self.0 as *const _ as *mut _) };
-        debug_assert_eq!(ret, 0);
+        unsafe { libc::pthread_mutex_unlock(self.as_ptr().cast_mut()) };
     }
-}
 
-impl Drop for PthreadLock {
     #[inline]
-    fn drop(&mut self) {
-        let ret = unsafe { libc::pthread_mutex_destroy(&mut self.0 as *mut _ as *mut _) };
-        debug_assert_eq!(ret, 0);
+    fn try_lock(&self) -> bool {
+        unsafe { libc::pthread_mutex_trylock(self.as_ptr().cast_mut()) == 0 }
     }
 }

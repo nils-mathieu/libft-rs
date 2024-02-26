@@ -47,7 +47,6 @@ pub use self::misc::*;
 pub use self::panic_handler::set_panic_handler;
 pub use self::process::{Pid, Signal};
 pub use self::sync::mutex::Mutex;
-pub use self::sync::OnceCell;
 pub use self::time::*;
 pub use self::user::*;
 
