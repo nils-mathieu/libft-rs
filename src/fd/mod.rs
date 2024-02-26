@@ -66,6 +66,7 @@ impl Fd {
     /// This function returns `false` if the file descriptor is not a TTY, or if the file
     /// descriptor is not valid.
     #[inline]
+    #[doc(alias = "isatty")]
     pub fn is_a_tty(self) -> bool {
         unsafe { libc::isatty(self.0) == 1 }
     }

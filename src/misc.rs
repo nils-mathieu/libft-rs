@@ -8,6 +8,7 @@
 /// this function may fail if the maximum number of registered function has been
 /// reached.
 #[inline]
+#[doc(alias = "atexit")]
 pub fn at_exit(f: extern "C" fn()) -> bool {
     unsafe { libc::atexit(f) == 0 }
 }

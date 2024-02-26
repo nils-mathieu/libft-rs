@@ -82,6 +82,7 @@ impl Pid {
     /// Blocks the current thread until *any* of the child processes of
     /// the current process have changed state.
     #[inline]
+    #[doc(alias = "waitpid")]
     pub fn wait_any(opts: WaitOptions) -> Result<(Pid, ExitStatus)> {
         let mut status = 0;
         let ret = unsafe { libc::waitpid(-1, &mut status, opts.bits()) };
@@ -100,6 +101,7 @@ impl Pid {
     /// This function assumes that the PID stored in `self` is an actual
     /// child process (and not a special value, such as `-1`).
     #[inline]
+    #[doc(alias = "waitpid")]
     pub fn wait(self, opts: WaitOptions) -> Result<ExitStatus> {
         let mut status = 0;
         let ret = unsafe { libc::waitpid(self.as_raw(), &mut status, opts.bits()) };

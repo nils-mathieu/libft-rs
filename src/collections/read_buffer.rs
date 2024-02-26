@@ -108,6 +108,8 @@ impl ReadBuffer {
     ///
     /// This function may fail if the system ran out of memory. In that case, [`OutOfMemory`]
     /// is returned.
+    ///
+    /// [`OutOfMemory`]: crate::malloc::OutOfMemory
     pub fn reserve(&mut self, count: usize) -> Result<()> {
         // There's three cases to consider:
         // 1. The buffer has enough spare capacity right now.

@@ -28,6 +28,8 @@ bitflags! {
 
 /// Describes a file descriptor being waited on.
 #[derive(Copy, Clone, Debug)]
+#[repr(C)]
+#[doc(alias = "pollfd")]
 pub struct PollFd {
     /// The file descriptor being waited on.
     pub fd: Fd,

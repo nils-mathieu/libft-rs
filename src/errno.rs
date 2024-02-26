@@ -12,6 +12,7 @@ pub type Result<T> = ::core::result::Result<T, Errno>;
 /// The type of the `errno` global variable.
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[doc(alias = "errno")]
 pub struct Errno(c_int);
 
 impl Errno {

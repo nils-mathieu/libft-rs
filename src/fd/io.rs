@@ -31,6 +31,7 @@ impl Fd {
     ///
     /// A [`Fd`] instance representing the opened file.
     #[inline]
+    #[doc(alias = "open")]
     pub fn open_with_mode(path: &CharStar, flags: OpenFlags, mode: Mode) -> Result<Self> {
         let res = unsafe { libc::open(path.as_ptr(), flags.bits(), mode.bits() as c_uint) };
         if res < 0 {
@@ -65,6 +66,7 @@ impl Fd {
     ///
     /// This function simply calls [`write`](Fd::write) in a loop until the entire buffer
     /// has been written or an error occurs.
+    #[doc(alias = "write")]
     pub fn write_all(self, mut buf: &[u8]) -> Result<()> {
         while !buf.is_empty() {
             let n = self.write(buf)?;
@@ -82,6 +84,7 @@ impl Fd {
     ///
     /// This is a convenience wrapper around [`write_all`](Fd::write_all) that takes a
     /// [`fmt::Arguments`] instance instead of a byte slice.
+    #[doc(alias = "write")]
     pub fn write_fmt(self, arguments: fmt::Arguments) -> Result<()> {
         /// An adapter that implements [`fmt::Write`] but makes sure to
         /// keep track of I/O errors instead of discarding them.
@@ -152,6 +155,7 @@ impl Fd {
     ///
     /// If the file descriptor is exhausted, this function will return `None`.
     #[inline]
+    #[doc(alias = "read")]
     pub fn read_one(self) -> Result<Option<u8>> {
         let mut buffer = MaybeUninit::uninit();
 
@@ -171,6 +175,7 @@ impl Fd {
     /// The number of bytes read is returned.
     #[cfg(feature = "alloc")]
     #[inline]
+    #[doc(alias = "read")]
     pub fn read_once_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> Result<usize> {
         let spare_cap = vec.spare_capacity_mut();
         match self.read(spare_cap) {
@@ -184,6 +189,7 @@ impl Fd {
 
     /// Reads the contents of the whole file until end-of-file or until an error occurs.
     #[cfg(feature = "alloc")]
+    #[doc(alias = "read")]
     pub fn read_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> Result<()> {
         // Read the whole file into a vector.
         loop {
@@ -209,6 +215,7 @@ impl File {
 
     /// Creates a new file for writing, truncating it if it already exists.
     #[inline]
+    #[doc(alias = "open")]
     pub fn create(path: &CharStar) -> Result<Self> {
         Fd::open_with_mode(
             path,

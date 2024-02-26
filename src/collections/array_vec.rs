@@ -84,6 +84,8 @@ impl<T, const N: usize> ArrayVec<T, N> {
     /// element to avoid copies.
     ///
     /// If the order must be preserved, use [`remove`] instead.
+    ///
+    /// [`remove`]: Self::remove
     pub fn swap_remove(&mut self, index: usize) -> Option<T> {
         if index >= self.init as usize {
             return None;
@@ -104,6 +106,8 @@ impl<T, const N: usize> ArrayVec<T, N> {
     /// left.
     ///
     /// If the order does not matter, use [`swap_remove`] instead.
+    ///
+    /// [`swap_remove`]: Self::swap_remove
     pub fn remove(&mut self, index: usize) -> Option<T> {
         if index >= self.init as usize {
             return None;

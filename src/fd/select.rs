@@ -7,6 +7,7 @@ use core::time::Duration;
 use crate::{Errno, Fd, Result};
 
 /// A finite set of file descriptors.
+#[doc(alias = "ft_set")]
 pub struct FdSet(libc::fd_set);
 
 impl FdSet {
@@ -17,6 +18,7 @@ impl FdSet {
 
     /// Returns whether a [`FdSet`] instance can hold the provided file descriptor.
     #[inline]
+    #[doc(alias = "FD_SETSIZE")]
     pub fn can_hold(fd: Fd) -> bool {
         fd.to_raw() < libc::FD_SETSIZE as c_int
     }
@@ -28,6 +30,7 @@ impl FdSet {
     /// This function panics in debug builds when the provided file descriptor do not fit
     /// in the set.
     #[inline]
+    #[doc(alias = "FD_SET")]
     pub fn insert(&mut self, fd: Fd) {
         debug_assert!(Self::can_hold(fd));
         unsafe { libc::FD_SET(fd.to_raw(), &mut self.0) }
@@ -40,6 +43,7 @@ impl FdSet {
     /// This function panics in debug builds when the provided file descriptor do not fit
     /// in the set.
     #[inline]
+    #[doc(alias = "FD_CLR")]
     pub fn remove(&mut self, fd: Fd) {
         debug_assert!(Self::can_hold(fd));
         unsafe { libc::FD_CLR(fd.to_raw(), &mut self.0) }
@@ -52,6 +56,7 @@ impl FdSet {
     /// This function panics in debug builds when the provided file descriptor do not fit
     /// in the set.
     #[inline]
+    #[doc(alias = "FD_ISSET")]
     pub fn contains(&self, fd: Fd) -> bool {
         debug_assert!(Self::can_hold(fd));
         unsafe { libc::FD_ISSET(fd.to_raw(), &self.0) }

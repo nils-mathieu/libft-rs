@@ -38,6 +38,7 @@ extern "C" {
 
 /// Represents a C-like string (null-terminated array of bytes).
 #[repr(transparent)]
+#[doc(alias = "char*")]
 pub struct CharStar(Unsized);
 
 unsafe impl Sync for CharStar {}

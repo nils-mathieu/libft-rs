@@ -51,6 +51,7 @@ impl Signal {
     /// This function panics if `self` is not a valid signal.
     #[inline]
     #[track_caller]
+    #[doc(alias = "signal")]
     pub fn set_handler(self, handler: SigHandler) -> SigHandler {
         handler
             .install(self)
@@ -62,6 +63,7 @@ impl Signal {
     /// [`set_handler`]: Self::set_handler
     #[inline]
     #[track_caller]
+    #[doc(alias = "signal")]
     pub fn set_handler_fn(self, f: extern "C" fn(Signal)) -> SigHandler {
         self.set_handler(SigHandler::from_fn(f))
     }
@@ -102,6 +104,7 @@ impl SigHandler {
     ///
     /// This function fails if the provided [`Signal`] is invalid.
     #[inline]
+    #[doc(alias = "signal")]
     pub fn install(self, signal: Signal) -> Option<SigHandler> {
         let ret = unsafe { libc::signal(signal.as_raw(), self.0) };
 

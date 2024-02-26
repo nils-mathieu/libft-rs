@@ -40,6 +40,7 @@ impl AddrInfo {
     /// # Returns
     ///
     /// An iterator over matching addresses.
+    #[doc(alias = "getaddrinfo")]
     pub fn lookup(
         hostname: Option<&CharStar>,
         service: Option<&CharStar>,

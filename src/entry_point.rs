@@ -33,6 +33,7 @@
 /// }
 /// ```
 #[macro_export]
+#[doc(alias = "main")]
 macro_rules! entry_point {
     ($f:expr) => {
         const _: () = {

@@ -28,6 +28,7 @@ impl Dylib {
     /// library is not properly constructed. This function is marked as `unsafe` to reflect that
     /// fact. The caller must ensure that the library's constructor won't cause undefined behavior.
     #[inline]
+    #[doc(alias = "dlopen")]
     pub unsafe fn new_lazy(filename: &CharStar) -> Result<Self> {
         let handle = unsafe { libc::dlopen(filename.as_ptr(), libc::RTLD_LAZY) };
         if handle.is_null() {
@@ -48,6 +49,7 @@ impl Dylib {
     /// library is not properly constructed. This function is marked as `unsafe` to reflect that
     /// fact. The caller must ensure that the library's constructor won't cause undefined behavior.
     #[inline]
+    #[doc(alias = "dlopen")]
     pub unsafe fn new(filename: &CharStar) -> Result<Self> {
         let handle = unsafe { libc::dlopen(filename.as_ptr(), libc::RTLD_NOW) };
         if handle.is_null() {
@@ -60,6 +62,7 @@ impl Dylib {
     /// Determines whether the library with the provided file name is
     /// currently loaded.
     #[inline]
+    #[doc(alias = "dlopen")]
     pub fn is_loaded(filename: &CharStar) -> bool {
         let handle = unsafe { libc::dlopen(filename.as_ptr(), libc::RTLD_NOLOAD) };
         !handle.is_null()
@@ -67,6 +70,7 @@ impl Dylib {
 
     /// Attempts to close the library.
     #[inline]
+    #[doc(alias = "dlclose")]
     pub fn close(self) -> Result<()> {
         let this = ManuallyDrop::new(self);
         let ret = unsafe { libc::dlclose(this.handle) };
@@ -86,6 +90,7 @@ impl Dylib {
     /// If the function returns [`Ok(_)`], then the symbol was found and
     /// it is guaranteed not be null.
     #[inline]
+    #[doc(alias = "dlsym")]
     pub fn raw_symbol(&self, name: &CharStar) -> Result<*const c_void> {
         let symbol = unsafe { libc::dlsym(self.handle, name.as_ptr()) };
         if symbol.is_null() {
@@ -110,6 +115,7 @@ impl Dylib {
     ///
     /// 2. Be of the correct type.
     #[inline]
+    #[doc(alias = "dlsym")]
     pub unsafe fn symbol<T>(&self, name: &CharStar) -> Result<T> {
         assert_eq!(
             core::mem::size_of::<T>(),

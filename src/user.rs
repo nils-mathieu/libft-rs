@@ -1,5 +1,6 @@
 /// A user identifier.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[doc(alias = "uid_t")]
 pub struct Uid(libc::uid_t);
 
 impl Uid {
@@ -8,12 +9,14 @@ impl Uid {
 
     /// Returns the real user ID of the calling process.
     #[inline]
+    #[doc(alias = "getuid")]
     pub fn current() -> Self {
         Self(unsafe { libc::getuid() })
     }
 
     /// Returns the effective user ID of the calling process.
     #[inline]
+    #[doc(alias = "geteuid")]
     pub fn effective() -> Self {
         Self(unsafe { libc::geteuid() })
     }

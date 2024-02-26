@@ -7,6 +7,7 @@ use crate::{Errno, Result};
 
 /// A clock that measures time since some epoch, goes at some rate.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[doc(alias = "clockid_t")]
 pub struct Clock(libc::clockid_t);
 
 impl Clock {
@@ -25,6 +26,7 @@ impl Clock {
     pub const MONOTONIC: Clock = Clock(libc::CLOCK_MONOTONIC);
 
     /// Returns the current instant associated with this clock.
+    #[doc(alias = "clock_gettime")]
     pub fn get(self) -> Result<Instant> {
         let mut timespec = unsafe { core::mem::zeroed() };
         let ret = unsafe { libc::clock_gettime(self.0, &mut timespec) };

@@ -33,7 +33,7 @@ impl Fd {
     /// Passive sockets are used to listen for incoming connections coming from
     /// the network.
     ///
-    /// This the socket must be of type [`SocketType::Stream`](crate::net::SocketType::Stream).
+    /// This the socket must be of type [`SocketType::Stream`].
     ///
     /// # Arguments
     ///

@@ -24,6 +24,7 @@ bitflags! {
 /// # Safety
 ///
 /// Calling this function may violate memory safety if currently mapped pages are messed with.
+#[doc(alias = "mmap")]
 pub unsafe fn anonymous(close_to: *mut (), length: usize, prot: Prot) -> Result<*mut ()> {
     let ret = unsafe {
         libc::mmap(
@@ -48,6 +49,7 @@ pub unsafe fn anonymous(close_to: *mut (), length: usize, prot: Prot) -> Result<
 /// # Safety
 ///
 /// Calling this function may violate memory safety if currently mapped pages are messed with.
+#[doc(alias = "mmap")]
 pub unsafe fn file(
     close_to: *mut (),
     length: usize,
@@ -78,6 +80,7 @@ pub unsafe fn file(
 /// # Safety
 ///
 /// Calling this function may violate memory safety if currently mapped pages are messed with.
+#[doc(alias = "munmap")]
 pub unsafe fn unmap(addr: *mut (), length: usize) -> Result<()> {
     let ret = unsafe { libc::munmap(addr as *mut c_void, length) };
 
@@ -87,29 +90,3 @@ pub unsafe fn unmap(addr: *mut (), length: usize) -> Result<()> {
         Err(Errno::last())
     }
 }
-
-/// A RAII wrapper around a memory mapping.
-///
-/// When a [`Mmap`] is dropped, the underlying memory mapping is automatically unmapped.
-pub struct Mmap(*mut (), usize);
-
-impl Mmap {
-    /// Returns the underlying pointer to the memory mapping.
-    pub fn as_ptr(&self) -> *mut () {
-        self.0
-    }
-
-    /// Returns the length of the memory mapping.
-    pub fn length(&self) -> usize {
-        self.1
-    }
-}
-
-impl Drop for Mmap {
-    fn drop(&mut self) {
-        let _ = unsafe { unmap(self.0, self.1) };
-    }
-}
-
-unsafe impl Send for Mmap {}
-unsafe impl Sync for Mmap {}

@@ -128,11 +128,13 @@ pub enum SetAt {
 /// Represents the Terminal I/O structure.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
+#[doc(alias = "termios")]
 pub struct Termios(libc::termios);
 
 impl Termios {
     /// Gets the [`Termios`] structure of the provided file descriptor.
     #[inline]
+    #[doc(alias = "tcgetattr")]
     pub fn get(fd: Fd) -> Result<Self> {
         let mut termios = MaybeUninit::uninit();
         let ret = unsafe { libc::tcgetattr(fd.to_raw(), termios.as_mut_ptr()) };
@@ -146,6 +148,7 @@ impl Termios {
 
     /// Sets the [`Termios`] structure of the provided file descriptor.
     #[inline]
+    #[doc(alias = "tcsetattr")]
     pub fn set(&self, fd: Fd, when: SetAt) -> Result<()> {
         let ret = unsafe { libc::tcsetattr(fd.to_raw(), when as _, &self.0) };
 
