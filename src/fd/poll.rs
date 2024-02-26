@@ -27,31 +27,49 @@ bitflags! {
 }
 
 /// Describes a file descriptor being waited on.
-#[derive(Copy, Clone, Debug)]
-#[repr(C)]
+#[derive(Copy, Clone)]
+#[repr(transparent)]
 #[doc(alias = "pollfd")]
-pub struct PollFd {
-    /// The file descriptor being waited on.
-    pub fd: Fd,
-
-    /// The events that the file descriptor waits for.
-    ///
-    /// If an event occurs and the corresponding flag is set, then the `revents` field
-    /// will be set to the same value.
-    pub events: PollFlags,
-
-    /// The events that occurred on the file descriptor since the last call to [`poll`].
-    pub revents: PollFlags,
-}
+pub struct PollFd(libc::pollfd);
 
 impl PollFd {
     /// Creates a new [`PollFd`] instance.
     pub const fn new(fd: Fd, events: PollFlags) -> Self {
-        Self {
-            fd,
-            events,
-            revents: PollFlags::empty(),
-        }
+        Self(libc::pollfd {
+            fd: fd.to_raw(),
+            events: events.bits(),
+            revents: 0,
+        })
+    }
+
+    /// Returns the file descriptor being waited on.
+    #[inline]
+    pub fn fd(&self) -> Fd {
+        Fd::from_raw(self.0.fd)
+    }
+
+    /// Returns the events being waited on.
+    #[inline]
+    pub fn events(&self) -> PollFlags {
+        PollFlags::from_bits_retain(self.0.events)
+    }
+
+    /// Returns the events being waited on.
+    #[inline]
+    pub fn events_mut(&mut self) -> &mut PollFlags {
+        unsafe { &mut *(self as *mut Self as *mut PollFlags) }
+    }
+
+    /// Returns the events that occurred on the file descriptor.
+    #[inline]
+    pub fn revents(&self) -> PollFlags {
+        PollFlags::from_bits_retain(self.0.revents)
+    }
+
+    /// Returns the events that occurred on the file descriptor.
+    #[inline]
+    pub fn revents_mut(&mut self) -> &mut PollFlags {
+        unsafe { &mut *(self as *mut Self as *mut PollFlags) }
     }
 }
 
