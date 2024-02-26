@@ -37,16 +37,19 @@ impl Fd {
     pub const STDERR: Self = Self(libc::STDERR_FILENO);
 
     /// Creates a new [`Fd`] instance from the provided raw file descriptor.
+    #[inline(always)]
     pub const fn from_raw(fd: c_int) -> Self {
         Self(fd)
     }
 
     /// Returns the raw file descriptor number represented by this [`Fd`] instance.
+    #[inline(always)]
     pub const fn to_raw(self) -> c_int {
         self.0
     }
 
     /// Closes the file descriptor.
+    #[inline]
     pub fn close(self) -> Result<()> {
         let ret = unsafe { libc::close(self.0) };
         if ret == 0 {
@@ -54,6 +57,17 @@ impl Fd {
         } else {
             Err(Errno::last())
         }
+    }
+
+    /// Returns whether this file descriptor is a TTY.
+    ///
+    /// # Remarks
+    ///
+    /// This function returns `false` if the file descriptor is not a TTY, or if the file
+    /// descriptor is not valid.
+    #[inline]
+    pub fn is_a_tty(self) -> bool {
+        unsafe { libc::isatty(self.0) == 1 }
     }
 }
 
