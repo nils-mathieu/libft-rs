@@ -14,6 +14,12 @@ pub fn abort() -> ! {
     unsafe { libc::abort() }
 }
 
+/// Pauses the current process until a signal is received.
+#[inline]
+pub fn pause() {
+    unsafe { libc::pause() };
+}
+
 /// The result of a [`fork`] operation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Fork {
