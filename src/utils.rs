@@ -1,4 +1,5 @@
 use core::fmt::Write;
+use core::mem::ManuallyDrop;
 
 /// See [`display_bytes`].
 #[repr(transparent)]
@@ -70,4 +71,42 @@ impl core::fmt::Display for DisplayBytes {
 #[inline]
 pub fn display_bytes(b: &[u8]) -> &DisplayBytes {
     unsafe { &*(b as *const [u8] as *const DisplayBytes) }
+}
+
+/// A guard that calls the provided closure when dropped.
+pub struct Guard<T, F: FnOnce(T)> {
+    value: ManuallyDrop<T>,
+    destructor: ManuallyDrop<F>,
+}
+
+impl<T, F: FnOnce(T)> Guard<T, F> {
+    /// Creates a new guard with the given value and destructor.
+    #[inline]
+    pub const fn new(value: T, destructor: F) -> Self {
+        Self {
+            value: ManuallyDrop::new(value),
+            destructor: ManuallyDrop::new(destructor),
+        }
+    }
+
+    /// Defuses the guard, returning the value and the destructor.
+    pub fn defuse(self) -> T {
+        let mut this = ManuallyDrop::new(self);
+
+        unsafe {
+            let val = ManuallyDrop::take(&mut this.value);
+            ManuallyDrop::drop(&mut this.destructor);
+            val
+        }
+    }
+}
+
+impl<T, F: FnOnce(T)> Drop for Guard<T, F> {
+    fn drop(&mut self) {
+        unsafe {
+            let destructor = ManuallyDrop::take(&mut self.destructor);
+            let value = ManuallyDrop::take(&mut self.value);
+            destructor(value);
+        }
+    }
 }

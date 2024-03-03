@@ -12,6 +12,7 @@ default = [
     "panic-eh-personality",
     "collections",
     "alloc",
+    "rt-single-thread",
 ]
 
 panic-handler = []
@@ -19,6 +20,7 @@ panic-eh-personality = []
 global-allocator = []
 collections = []
 alloc = []
+rt-single-thread = []
 
 restrict-functions = []
 restrict-errno = []

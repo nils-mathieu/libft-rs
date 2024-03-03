@@ -20,6 +20,22 @@ impl From<OutOfMemory> for crate::Errno {
     }
 }
 
+#[cfg(feature = "alloc")]
+impl From<core::alloc::AllocError> for OutOfMemory {
+    #[inline]
+    fn from(_: core::alloc::AllocError) -> Self {
+        Self
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl From<alloc::collections::TryReserveError> for OutOfMemory {
+    #[inline]
+    fn from(_: alloc::collections::TryReserveError) -> Self {
+        Self
+    }
+}
+
 /// The result type for memory-backed collections.
 pub type Result<T> = ::core::result::Result<T, OutOfMemory>;
 

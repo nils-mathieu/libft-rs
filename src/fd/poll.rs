@@ -57,7 +57,7 @@ impl PollFd {
     /// Returns the events being waited on.
     #[inline]
     pub fn events_mut(&mut self) -> &mut PollFlags {
-        unsafe { &mut *(self as *mut Self as *mut PollFlags) }
+        unsafe { &mut *(&mut self.0.events as *mut c_short as *mut PollFlags) }
     }
 
     /// Returns the events that occurred on the file descriptor.
@@ -69,7 +69,12 @@ impl PollFd {
     /// Returns the events that occurred on the file descriptor.
     #[inline]
     pub fn revents_mut(&mut self) -> &mut PollFlags {
-        unsafe { &mut *(self as *mut Self as *mut PollFlags) }
+        unsafe { &mut *(&mut self.0.revents as *mut c_short as *mut PollFlags) }
+    }
+
+    /// Returns whether this [`PollFd`] instance is ready (it has a non-zero `revents`).
+    pub fn ready(&self) -> bool {
+        self.revents().is_empty()
     }
 }
 

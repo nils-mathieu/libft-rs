@@ -6,6 +6,9 @@
 #![feature(extern_types, panic_info_message)]
 #![feature(slice_ptr_get)]
 #![feature(lang_items)]
+#![feature(thread_local)]
+#![feature(allocator_api)]
+#![feature(const_binary_heap_constructor)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -35,6 +38,8 @@ pub mod malloc;
 pub mod mmap;
 pub mod net;
 pub mod process;
+#[cfg(feature = "rt-single-thread")]
+pub mod runtime;
 pub mod sync;
 pub mod termios;
 pub mod utils;

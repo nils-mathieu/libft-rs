@@ -26,7 +26,7 @@ impl<T> SafeVecExt for Vec<T> {
     type Item = T;
 
     fn try_push(&mut self, item: Self::Item) -> Result<(), OutOfMemory> {
-        self.try_reserve(1).map_err(|_| OutOfMemory)?;
+        self.try_reserve(1)?;
         self.push(item);
         Ok(())
     }
@@ -35,7 +35,7 @@ impl<T> SafeVecExt for Vec<T> {
     where
         Self::Item: Clone,
     {
-        self.try_reserve(slice.len()).map_err(|_| OutOfMemory)?;
+        self.try_reserve(slice.len())?;
         self.extend_from_slice(slice);
         Ok(())
     }
