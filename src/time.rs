@@ -3,7 +3,8 @@
 use core::ops::{Add, AddAssign, Sub};
 use core::time::Duration;
 
-use crate::{Errno, Result};
+#[cfg(feature = "futures")]
+use crate::futures;
 
 /// A clock that measures time since some epoch, goes at some rate.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
@@ -27,17 +28,16 @@ impl Clock {
 
     /// Returns the current instant associated with this clock.
     #[doc(alias = "clock_gettime")]
-    pub fn get(self) -> Result<Instant> {
+    pub fn get(self) -> Instant {
         let mut timespec = unsafe { core::mem::zeroed() };
+
         let ret = unsafe { libc::clock_gettime(self.0, &mut timespec) };
-        if ret == 0 {
-            Ok(Instant(Duration::new(
-                timespec.tv_sec as u64,
-                timespec.tv_nsec as u32,
-            )))
-        } else {
-            Err(Errno::last())
-        }
+        debug_assert!(ret == 0);
+
+        Instant(Duration::new(
+            timespec.tv_sec as u64,
+            timespec.tv_nsec as u32,
+        ))
     }
 }
 
@@ -58,6 +58,12 @@ impl Instant {
 
     /// An [`Instant`] that represents the far future.
     pub const FAR_FUTURE: Instant = Instant(Duration::from_secs(u64::MAX));
+
+    /// Computes `self + other`. If the result overflows, `None` is returned.
+    #[inline]
+    pub fn checked_add(self, other: Duration) -> Option<Self> {
+        self.0.checked_add(other).map(Self)
+    }
 
     /// Returns the amount of time elapsed since this instant was created.
     ///
@@ -102,4 +108,22 @@ impl AddAssign<Duration> for Instant {
     fn add_assign(&mut self, rhs: Duration) {
         *self = *self + rhs;
     }
+}
+
+/// Returns a [`Future`](core::future::Future) that sleeps for the requested amount of time.
+#[cfg(feature = "futures")]
+#[inline]
+pub fn async_sleep(duration: Duration) -> futures::Sleep {
+    let now = Clock::MONOTONIC.get();
+    futures::Sleep::new(now.saturating_add(duration))
+}
+
+/// Returns a [`Future`](core::future::Future) that sleeps until the reuqested instant.
+///
+/// If the instant is in the past, the task will sleep for a single runtime tick. If this behavior
+/// is not wanted, please check manually with `Clock::MONOTONIC.get()`.
+#[cfg(feature = "futures")]
+#[inline]
+pub fn async_sleep_until(alarm: Instant) -> futures::Sleep {
+    futures::Sleep::new(alarm)
 }

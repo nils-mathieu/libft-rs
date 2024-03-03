@@ -102,19 +102,16 @@ impl TaskWaker {
         // Compute the timeout for the `poll` call.
         // Use saturating semantics to make sure that if any task must be woken up right now,
         // the timeout of 0.
-        let timeout = match self.sleepers.peek() {
-            Some(sleeper) => {
-                let now = Clock::MONOTONIC.get()?;
-                Some(sleeper.instant.saturating_sub(now))
-            }
-            None => None,
-        };
+        let timeout = self
+            .sleepers
+            .peek()
+            .map(|s| s.instant.saturating_sub(Clock::MONOTONIC.get()));
 
         crate::fd::poll(&mut self.io, timeout)?;
 
         // Wake up all the tasks that are waiting for an alarm if the alarm has already
         // been reached.
-        let now = Clock::MONOTONIC.get()?;
+        let now = Clock::MONOTONIC.get();
         while let Some(sleeper) = self.sleepers.peek() {
             if now >= sleeper.instant {
                 let sleeper = unsafe { self.sleepers.pop().unwrap_unchecked() };

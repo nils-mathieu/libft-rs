@@ -13,6 +13,7 @@ default = [
     "collections",
     "alloc",
     "rt-single-thread",
+    "futures",
 ]
 
 panic-handler = []
@@ -21,6 +22,7 @@ global-allocator = []
 collections = []
 alloc = []
 rt-single-thread = []
+futures = []
 
 restrict-functions = []
 restrict-errno = []

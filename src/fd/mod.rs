@@ -6,15 +6,13 @@ use core::ops::Deref;
 use crate::{Errno, Result};
 
 mod fcntl;
-pub use self::fcntl::*;
-
 mod io;
 mod net;
-
 mod poll;
-pub use self::poll::*;
-
 mod select;
+
+pub use self::fcntl::*;
+pub use self::poll::*;
 pub use self::select::*;
 
 /// A file descriptor.

@@ -34,6 +34,8 @@ pub mod charstar;
 pub mod collections;
 pub mod dylib;
 pub mod fd;
+#[cfg(feature = "futures")]
+pub mod futures;
 pub mod malloc;
 pub mod mmap;
 pub mod net;

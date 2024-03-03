@@ -5,6 +5,8 @@ use core::mem::MaybeUninit;
 use libc::c_uint;
 
 use super::{Mode, OpenFlags};
+#[cfg(feature = "futures")]
+use crate::futures;
 use crate::{CharStar, Errno, Fd, File, Result};
 
 impl Fd {
@@ -53,13 +55,21 @@ impl Fd {
     ///
     /// The number of bytes written to the file descriptor.
     #[inline]
-    pub fn write(self, buf: &[u8]) -> Result<usize> {
-        let res = unsafe { libc::write(self.0, buf.as_ptr() as *const c_void, buf.len()) };
+    pub fn write(self, data: &[u8]) -> Result<usize> {
+        let res = unsafe { libc::write(self.0, data.as_ptr() as *const c_void, data.len()) };
         if res < 0 {
             Err(Errno::last())
         } else {
             Ok(res as usize)
         }
+    }
+
+    /// Like [`write`](Self::write), but async.
+    #[inline]
+    #[cfg(feature = "futures")]
+    #[doc(alias = "write")]
+    pub fn async_write(self, data: &[u8]) -> futures::Write {
+        futures::Write { fd: self, data }
     }
 
     /// Writes the entire contents of the provided buffer to the file descriptor.
@@ -78,6 +88,14 @@ impl Fd {
         }
 
         Ok(())
+    }
+
+    /// Like [`write_all`](Self::write_all), but async.
+    #[inline]
+    #[cfg(feature = "futures")]
+    #[doc(alias = "write")]
+    pub fn async_write_all(self, data: &[u8]) -> futures::WriteAll {
+        futures::WriteAll { fd: self, data }
     }
 
     /// Writes the provided arguments to the file descriptor.
@@ -151,6 +169,14 @@ impl Fd {
         }
     }
 
+    /// Like [`read`](Self::read), but async.
+    #[inline]
+    #[cfg(feature = "futures")]
+    #[doc(alias = "read")]
+    pub fn async_read(self, buf: &mut [MaybeUninit<u8>]) -> futures::Read {
+        futures::Read { fd: self, buf }
+    }
+
     /// Reads a single byte from the file descriptor.
     ///
     /// If the file descriptor is exhausted, this function will return `None`.
@@ -160,6 +186,21 @@ impl Fd {
         let mut buffer = MaybeUninit::uninit();
 
         match self.read(core::slice::from_mut(&mut buffer)) {
+            Ok(0) => Ok(None),
+            Ok(1) => Ok(Some(unsafe { buffer.assume_init() })),
+            Ok(_) => unsafe { core::hint::unreachable_unchecked() },
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Like [`read_one`](Self::read_one), but async.
+    #[doc(alias = "read")]
+    #[inline]
+    #[cfg(feature = "futures")]
+    pub async fn async_read_one(self) -> Result<Option<u8>> {
+        let mut buffer = MaybeUninit::uninit();
+
+        match self.async_read(core::slice::from_mut(&mut buffer)).await {
             Ok(0) => Ok(None),
             Ok(1) => Ok(Some(unsafe { buffer.assume_init() })),
             Ok(_) => unsafe { core::hint::unreachable_unchecked() },
@@ -187,13 +228,30 @@ impl Fd {
         }
     }
 
+    /// Like [`read_once_to_vec`](Self::read_once_to_vec), but async.
+    #[cfg(feature = "futures")]
+    #[doc(alias = "read")]
+    #[inline]
+    pub async fn async_read_once_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> Result<usize> {
+        let spare_cap = vec.spare_capacity_mut();
+        match self.async_read(spare_cap).await {
+            Ok(count) => {
+                unsafe { vec.set_len(vec.len() + count) };
+                Ok(count)
+            }
+            Err(e) => Err(e),
+        }
+    }
+
     /// Reads the contents of the whole file until end-of-file or until an error occurs.
     #[cfg(feature = "alloc")]
     #[doc(alias = "read")]
     pub fn read_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> Result<()> {
+        let mut batch_size = 64;
+
         // Read the whole file into a vector.
         loop {
-            if vec.spare_capacity_mut().len() < 128 && vec.try_reserve(128).is_err() {
+            if vec.spare_capacity_mut().len() < batch_size && vec.try_reserve(batch_size).is_err() {
                 break Err(Errno::NOMEM);
             }
 
@@ -202,6 +260,30 @@ impl Fd {
                 Ok(_) => {}
                 Err(e) => break Err(e),
             }
+
+            batch_size = batch_size.saturating_mul(2);
+        }
+    }
+
+    /// Like [`read_to_vec`](Self::read_to_vec), but async.
+    #[cfg(feature = "futures")]
+    #[doc(alias = "read")]
+    pub async fn async_read_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> Result<()> {
+        let mut batch_size = 64;
+
+        // Read the whole file into a vector.
+        loop {
+            if vec.spare_capacity_mut().len() < batch_size && vec.try_reserve(batch_size).is_err() {
+                break Err(Errno::NOMEM);
+            }
+
+            match self.async_read_once_to_vec(vec).await {
+                Ok(0) => break Ok(()),
+                Ok(_) => {}
+                Err(e) => break Err(e),
+            }
+
+            batch_size = batch_size.saturating_mul(2);
         }
     }
 }
