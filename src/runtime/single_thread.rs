@@ -45,7 +45,7 @@ where
 
     #[cfg(debug_assertions)]
     assert!(
-        BORROWED.replace(true),
+        !BORROWED.replace(true),
         "attempted to reentrantly borrow the runtime"
     );
 
@@ -126,8 +126,8 @@ pub fn run_until_idle() -> crate::Result<usize> {
                 unsafe { with_runtime(|rt| rt.tasks.put_back_waiting(id, task)) };
             }
             Poll::Ready(()) => {
-                drop(task);
                 unsafe { with_runtime(|rt| rt.tasks.put_back_nothing(id)) };
+                drop(task);
             }
         }
     }

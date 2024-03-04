@@ -37,6 +37,14 @@ impl SocketAddr {
         }
     }
 
+    /// Updates the port of the socket address.
+    pub fn set_port(&mut self, port: u16) {
+        match self {
+            Self::V4(_, ref mut p) => *p = port,
+            Self::V6(_, ref mut p) => *p = port,
+        }
+    }
+
     /// Returns the family of the socket address.
     pub fn family(&self) -> SocketAddrFamily {
         match self {
