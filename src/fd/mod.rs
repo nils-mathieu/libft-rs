@@ -77,12 +77,12 @@ pub struct File(Fd);
 
 impl File {
     /// Creates a new [`File`] instance from the provided raw file descriptor.
-    pub fn from_raw(fd: c_int) -> Self {
+    pub const fn from_raw(fd: c_int) -> Self {
         Self(Fd::from_raw(fd))
     }
 
     /// Creates a new [`File`] instance from the provided [`Fd`] instance.
-    pub fn from_fd(fd: Fd) -> Self {
+    pub const fn from_fd(fd: Fd) -> Self {
         Self(fd)
     }
 

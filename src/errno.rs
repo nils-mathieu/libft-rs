@@ -66,13 +66,13 @@ impl Errno {
 
     /// Creates a new [`Errno`] instance from the provided raw value.
     #[inline]
-    pub fn from_raw(raw: c_int) -> Self {
+    pub const fn from_raw(raw: c_int) -> Self {
         Self(raw)
     }
 
     /// Returns the raw value of this [`Errno`] instance.
     #[inline]
-    pub fn to_raw(self) -> c_int {
+    pub const fn to_raw(self) -> c_int {
         self.0
     }
 
