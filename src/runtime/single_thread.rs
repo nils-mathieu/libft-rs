@@ -50,7 +50,7 @@ where
     );
 
     #[cfg(debug_assertions)]
-    let _guard = crate::utils::Guard::new((), |_| BORROWED.set(true));
+    let _guard = crate::utils::Guard::new((), |_| BORROWED.set(false));
 
     // SAFETY:
     //  The caller must make sure not to call this function reentrantly.
