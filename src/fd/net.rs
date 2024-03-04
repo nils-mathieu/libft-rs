@@ -2,6 +2,8 @@
 
 use core::ffi::c_int;
 
+#[cfg(feature = "futures")]
+use crate::futures;
 use crate::net::{SocketAddr, SocketAddrFamily, SocketType};
 use crate::{Errno, Fd, File, Result};
 
@@ -114,6 +116,14 @@ impl Fd {
                 SocketAddr::from_raw(&addr_storage as *const _ as *const _),
             ))
         }
+    }
+
+    /// Like [`accept`](Self::accept), but returns a future that resolves when a connection is
+    /// available.
+    #[cfg(feature = "futures")]
+    #[inline]
+    pub fn async_accept(self) -> futures::Accept {
+        futures::Accept(self)
     }
 
     /// Connects this socket to a specific address.
