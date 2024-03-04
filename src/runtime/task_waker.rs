@@ -107,7 +107,7 @@ impl TaskWaker {
             .peek()
             .map(|s| s.instant.saturating_sub(Clock::MONOTONIC.get()));
 
-        crate::fd::poll(&mut self.io, timeout)?;
+        let mut ready = crate::fd::poll(&mut self.io, timeout)?;
 
         // Wake up all the tasks that are waiting for an alarm if the alarm has already
         // been reached.
@@ -124,10 +124,9 @@ impl TaskWaker {
         debug_assert!(self.io.len() == self.io_wakers.len());
 
         // Wake up tasks that were waiting on I/O.
-        let mut ready = 0;
         let mut index = 0;
         while ready > 0 {
-            debug_assert!(index < self.io.len());
+            debug_assert!(index < self.io.len(), "{} < {}", index, self.io.len());
 
             unsafe {
                 let pollfd = self.io.get_unchecked(index);

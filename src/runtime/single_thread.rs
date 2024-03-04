@@ -12,50 +12,57 @@ use crate::fd::PollFd;
 use crate::malloc::OutOfMemory;
 use crate::Instant;
 
-/// Contains the state of the async runtime.
-struct Runtime<'a> {
-    tasks: Tasks<'a>,
-    waker: TaskWaker,
+/// A [`core::cell::RefCell<T>`] that's only checked in debug builds.
+struct UnsafeRefCell<T> {
+    /// The protected value.
+    value: UnsafeCell<T>,
+    /// Whether the cell is currently borrowed.
+    borrowed: Cell<bool>,
 }
 
-/// Calls the provided closure with a reference to the current runtime.
-///
-/// # Panics
-///
-/// This function panics in debug builds if called reentrantly.
-///
-/// # Safety
-///
-/// This function must not be called reentrantly.
-#[track_caller]
-#[cfg_attr(not(debug_assertions), inline(always))]
-unsafe fn with_runtime<F, R>(f: F) -> R
-where
-    F: FnOnce(&mut Runtime<'static>) -> R,
-{
-    #[thread_local]
-    static RUNTIME: UnsafeCell<Runtime<'static>> = UnsafeCell::new(Runtime {
-        tasks: Tasks::new(),
-        waker: TaskWaker::new(),
-    });
+impl<T> UnsafeRefCell<T> {
+    /// Creates a new [`UnsafeRefCell`] instance.
+    #[inline]
+    pub const fn new(val: T) -> Self {
+        Self {
+            value: UnsafeCell::new(val),
+            borrowed: Cell::new(false),
+        }
+    }
 
-    #[thread_local]
-    #[cfg(debug_assertions)]
-    static BORROWED: Cell<bool> = Cell::new(false);
+    /// Borrows the value temporarily.
+    ///
+    /// # Safety
+    ///
+    /// This function must not be called reentrantly.
+    ///
+    /// # Panics
+    ///
+    /// This function panics in debug builds if called reentrantly.
+    #[cfg_attr(not(debug_assertions), inline(always))]
+    #[track_caller]
+    pub unsafe fn update<R>(&self, f: impl FnOnce(&mut T) -> R) -> R {
+        #[cfg(debug_assertions)]
+        assert!(
+            !self.borrowed.replace(true),
+            "attempted to reentrantly borrow the runtime"
+        );
 
-    #[cfg(debug_assertions)]
-    assert!(
-        !BORROWED.replace(true),
-        "attempted to reentrantly borrow the runtime"
-    );
+        #[cfg(debug_assertions)]
+        let _guard = crate::utils::Guard::new((), |_| self.borrowed.set(false));
 
-    #[cfg(debug_assertions)]
-    let _guard = crate::utils::Guard::new((), |_| BORROWED.set(false));
-
-    // SAFETY:
-    //  The caller must make sure not to call this function reentrantly.
-    f(unsafe { &mut *RUNTIME.get() })
+        unsafe { f(&mut *self.value.get()) }
+    }
 }
+
+/// The list of all tasks running on the current thread.
+#[thread_local]
+static TASKS: UnsafeRefCell<Tasks<'static>> = UnsafeRefCell::new(Tasks::new());
+
+/// The task waker responsnible for waking tasks up and blocking until they're ready
+/// to work.
+#[thread_local]
+static WAKER: UnsafeRefCell<TaskWaker> = UnsafeRefCell::new(TaskWaker::new());
 
 /// Attempts to spawn a boxed task on the current runtime.
 ///
@@ -63,7 +70,7 @@ where
 ///
 /// This function fails if memory cannot be allocated to spawn the created task.
 pub fn try_spawn_boxed(task: DynTask<'static>) -> Result<(), OutOfMemory> {
-    unsafe { with_runtime(|rt| rt.tasks.insert(task)) }
+    unsafe { TASKS.update(|tasks| tasks.insert(task)) }
 }
 
 /// Attempts to spawn a task on the current runtime.
@@ -108,48 +115,49 @@ pub fn spawn(task: impl 'static + Future<Output = ()>) {
 /// The function returns the number of tasks that are still pending.
 pub fn run_until_idle() -> crate::Result<usize> {
     unsafe {
-        with_runtime(|rt| {
-            if !rt.waker.is_empty() {
-                rt.waker.wait_any()
+        WAKER.update(|waker| {
+            if !waker.is_empty() {
+                waker.wait_any()
             } else {
                 Ok(())
             }
         })?;
     }
 
-    while let Some((id, mut task)) = unsafe { with_runtime(|rt| rt.tasks.take_any_ready_task()) } {
+    while let Some((id, mut task)) = unsafe { TASKS.update(|tasks| tasks.take_any_ready_task()) } {
         let waker = waker_from_task_id(id);
         let mut ctx = Context::from_waker(&waker);
         match task.as_mut().poll(&mut ctx) {
             Poll::Pending => {
                 // The task is pending.
-                unsafe { with_runtime(|rt| rt.tasks.put_back_waiting(id, task)) };
+                unsafe { TASKS.update(|tasks| tasks.put_back_waiting(id, task)) };
             }
             Poll::Ready(()) => {
-                unsafe { with_runtime(|rt| rt.tasks.put_back_nothing(id)) };
+                unsafe { TASKS.update(|tasks| tasks.put_back_nothing(id)) };
                 drop(task);
             }
         }
     }
 
-    Ok(unsafe { with_runtime(|rt| rt.tasks.len()) })
+    Ok(unsafe { TASKS.update(|tasks| tasks.len()) })
 }
 
 /// Schedules the provided waker to be consumed when `pollfd` becomes ready.
 #[inline]
 pub fn wake_me_up_on_io(pollfd: PollFd, waker: Waker) -> Result<(), OutOfMemory> {
-    unsafe { with_runtime(move |rt| rt.waker.wake_me_up_on_io(pollfd, waker)) }
+    unsafe { WAKER.update(move |w| w.wake_me_up_on_io(pollfd, waker)) }
 }
 
 /// Schedules the provided waker to be consumed when `instant` is reached.
 #[inline]
 pub fn wake_me_up_on_time(at: Instant, waker: Waker) -> Result<(), OutOfMemory> {
-    unsafe { with_runtime(move |rt| rt.waker.wake_me_up_on_time(at, waker)) }
+    unsafe { WAKER.update(move |w| w.wake_me_up_on_time(at, waker)) }
 }
 
 /// Wakes a task up manually.
 ///
 /// If the provided task does not exist, or if it isn't pending, this function does nothing.
+#[inline]
 pub(super) fn wake_up_manual(id: TaskId) {
-    unsafe { with_runtime(|rt| rt.tasks.mark_ready(id)) };
+    unsafe { TASKS.update(|tasks| tasks.mark_ready(id)) };
 }

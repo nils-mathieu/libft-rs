@@ -73,8 +73,9 @@ impl PollFd {
     }
 
     /// Returns whether this [`PollFd`] instance is ready (it has a non-zero `revents`).
+    #[inline]
     pub fn ready(&self) -> bool {
-        self.revents().is_empty()
+        !self.revents().is_empty()
     }
 }
 
