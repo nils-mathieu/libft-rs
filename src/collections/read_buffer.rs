@@ -3,7 +3,10 @@
 use core::mem::MaybeUninit;
 use core::ptr::NonNull;
 
-use crate::{Fd, Result};
+#[cfg(feature = "futures")]
+use crate::futures;
+use crate::malloc::OutOfMemory;
+use crate::{Errno, Fd, MemchrExt};
 
 /// A collection of buffers that can be used to read data from a file descriptor efficiently.
 ///
@@ -59,7 +62,7 @@ impl ReadBuffer {
     }
 
     /// Creates a new [`ReadBuffer`] instance with the provided capacity.
-    pub fn with_capacity(cap: usize) -> Result<Self> {
+    pub fn with_capacity(cap: usize) -> Result<Self, OutOfMemory> {
         let mut readbuf = Self::new();
         readbuf.reserve(cap)?;
         Ok(readbuf)
@@ -110,7 +113,7 @@ impl ReadBuffer {
     /// is returned.
     ///
     /// [`OutOfMemory`]: crate::malloc::OutOfMemory
-    pub fn reserve(&mut self, count: usize) -> Result<()> {
+    pub fn reserve(&mut self, count: usize) -> Result<(), OutOfMemory> {
         // There's three cases to consider:
         // 1. The buffer has enough spare capacity right now.
         // 2. The buffer would have enough spare capacity if we overwrote the consumed part.
@@ -192,7 +195,7 @@ impl ReadBuffer {
     ///
     /// This function panics if `count` is greater than `pending().len()`.
     #[inline]
-    pub fn consume(&mut self, count: usize) {
+    pub fn consume(&mut self, count: usize) -> &mut [u8] {
         assert!(self.tail + count <= self.head);
         unsafe { self.consume_unchecked(count) }
     }
@@ -208,7 +211,10 @@ impl ReadBuffer {
     /// # Returns
     ///
     /// This function returns the part of the buffer that has been consumed.
-    pub unsafe fn consume_unchecked(&mut self, count: usize) {
+    pub unsafe fn consume_unchecked(&mut self, count: usize) -> &mut [u8] {
+        let ret =
+            unsafe { core::slice::from_raw_parts_mut(self.data.as_ptr().add(self.tail), count) };
+
         self.tail += count;
 
         // We just consumed the whole buffer, we can reset
@@ -218,6 +224,8 @@ impl ReadBuffer {
             self.tail = 0;
             self.head = 0;
         }
+
+        ret
     }
 
     /// Fills the buffer with additional data by reading from the provided file descriptor,
@@ -232,13 +240,99 @@ impl ReadBuffer {
     /// that at least *some* additional space is available.
     ///
     /// [`reserve`]: ReadBuffer::reserve
-    pub fn fill_with_fd(&mut self, fd: Fd) -> Result<usize> {
+    pub fn fill_with_fd(&mut self, fd: Fd) -> Result<usize, Errno> {
         let count = fd.read(self.spare_capacity_mut())?;
 
         unsafe {
             self.assume_init(count);
             Ok(count)
         }
+    }
+
+    /// Like [`fill_with_fd`](Self::fill_with_fd), but asynchronous.
+    ///
+    /// This function assumes that the provided file descriptor is non-blocking.
+    #[inline]
+    #[cfg(feature = "futures")]
+    pub fn async_fill_with_fd(&mut self, fd: Fd) -> futures::FillWithFd {
+        futures::FillWithFd { buf: self, fd }
+    }
+
+    /// Reads from the file descriptor until the given delimiter is found.
+    ///
+    /// The delimiter is included in the buffer.
+    ///
+    /// The buffer can be accessed through the `pending` method.
+    ///
+    /// # Remarks
+    ///
+    /// The current pending buffer is checked. If a delimiter is found in the current pending
+    /// buffer, it will be immediately returned. The returned part of the buffer will be consumed
+    /// and the next call to `read_until` will continue reading from the file descriptor (or parsing
+    /// the existing pending buffer).
+    pub fn read_until(&mut self, fd: Fd, delimiter: &[u8]) -> Result<&mut [u8], Errno> {
+        if delimiter.is_empty() {
+            return Ok(&mut []);
+        }
+
+        let mut batch_size = 64;
+
+        loop {
+            unsafe {
+                if let Some(index) = self.pending().memchr(*delimiter.get_unchecked(0)) {
+                    if self.pending().get_unchecked(index..).starts_with(delimiter) {
+                        return Ok(self.consume_unchecked(index + delimiter.len()));
+                    }
+                }
+            }
+
+            self.reserve(batch_size)?;
+            self.fill_with_fd(fd)?;
+
+            batch_size = batch_size.saturating_mul(2);
+        }
+    }
+
+    /// Reads exactly `count` bytes from the file descriptor (or from the pending buffer if it is
+    /// not empty).
+    ///
+    /// # Remarks
+    ///
+    /// The current pending buffer is checked. If it contains at least `count` bytes, they will be
+    /// immediately returned. The returned part of the buffer will be consumed and the next call to
+    /// `read_exact` will continue reading from the file descriptor (or parsing the existing pending
+    /// buffer).
+    pub fn read_exact(&mut self, fd: Fd, count: usize) -> Result<&mut [u8], Errno> {
+        loop {
+            if self.pending().len() >= count {
+                return unsafe { Ok(self.consume_unchecked(count)) };
+            }
+
+            self.reserve(count.saturating_sub(self.pending().len()))?;
+            self.fill_with_fd(fd)?;
+        }
+    }
+
+    /// Like [`read_until`](Self::read_until), but asynchronous.
+    ///
+    /// This function assumes that the provided file descriptor is non-blocking.
+    #[inline]
+    #[cfg(feature = "futures")]
+    pub fn async_read_until<'a, 'd>(
+        &'a mut self,
+        fd: Fd,
+        delimiter: &'d [u8],
+    ) -> futures::ReadUntil<'a, 'd> {
+        futures::ReadUntil::new(fd, self, delimiter)
+    }
+
+    /// Like [`read_exact`](Self::read_exact), but asynchronous.
+    ///
+    /// This function assumes that the provided file descriptor is non-blocking.
+    #[inline]
+    #[cfg(feature = "futures")]
+    pub fn async_read_exact(&mut self, fd: Fd, count: usize) -> futures::ReadExact {
+        futures::ReadExact::new(fd, self, count)
     }
 }
 

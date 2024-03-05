@@ -121,6 +121,7 @@ impl Fd {
     /// Like [`accept`](Self::accept), but returns a future that resolves when a connection is
     /// available.
     #[cfg(feature = "futures")]
+    #[doc(alias = "accept")]
     #[inline]
     pub fn async_accept(self) -> futures::Accept {
         futures::Accept(self)

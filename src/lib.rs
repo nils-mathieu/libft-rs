@@ -13,6 +13,8 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+#[cfg(feature = "alloc")]
+mod alloc_ext;
 mod ctor;
 mod entry_point;
 mod errno;
@@ -20,14 +22,13 @@ mod errno;
 mod fake_libc;
 #[cfg(feature = "global-allocator")]
 mod global_allocator;
+mod memchr_ext;
 mod misc;
 #[cfg(feature = "panic-handler")]
 mod panic_handler;
 mod time;
 mod user;
 
-#[cfg(feature = "alloc")]
-pub mod alloc_ext;
 pub mod ansi;
 pub mod charstar;
 #[cfg(feature = "collections")]
@@ -46,9 +47,12 @@ pub mod sync;
 pub mod termios;
 pub mod utils;
 
+#[cfg(feature = "alloc")]
+pub use self::alloc_ext::*;
 pub use self::charstar::CharStar;
 pub use self::errno::{Errno, Result};
 pub use self::fd::{Fd, File};
+pub use self::memchr_ext::*;
 pub use self::misc::*;
 #[cfg(feature = "panic-handler")]
 pub use self::panic_handler::set_panic_handler;

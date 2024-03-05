@@ -36,9 +36,6 @@ impl From<alloc::collections::TryReserveError> for OutOfMemory {
     }
 }
 
-/// The result type for memory-backed collections.
-pub type Result<T> = ::core::result::Result<T, OutOfMemory>;
-
 /// Allocates a block of memory of the given size.
 ///
 /// The returned pointer is guaranteed to be aligned to the native word size of the target
@@ -55,7 +52,7 @@ pub type Result<T> = ::core::result::Result<T, OutOfMemory>;
 /// will leak.
 #[allow(unused_mut)]
 #[doc(alias = "malloc")]
-pub fn allocate(mut size: usize) -> Result<NonNull<[u8]>> {
+pub fn allocate(mut size: usize) -> Result<NonNull<[u8]>, OutOfMemory> {
     #[cfg(all(target_os = "macos", not(feature = "restrict-functions")))]
     {
         size = unsafe { libc::malloc_good_size(size) };

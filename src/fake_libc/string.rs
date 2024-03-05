@@ -140,3 +140,22 @@ pub unsafe fn bzero(s: *mut c_void, n: usize) {
         memset(s, 0, n);
     }
 }
+
+/// Returns a pointer to the first occurance of `c` in `s`, or `NULL` if `c` is not found within the
+/// first `n` bytes.
+pub unsafe fn memchr(s: *const c_void, c: c_int, n: usize) -> *const c_void {
+    let mut s = s.cast::<u8>();
+    let mut n = n;
+
+    unsafe {
+        while n > 0 {
+            if *s == c as u8 {
+                return s.cast::<c_void>();
+            }
+            s = s.add(1);
+            n -= 1;
+        }
+    }
+
+    core::ptr::null()
+}

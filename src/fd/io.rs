@@ -197,15 +197,8 @@ impl Fd {
     #[doc(alias = "read")]
     #[inline]
     #[cfg(feature = "futures")]
-    pub async fn async_read_one(self) -> Result<Option<u8>> {
-        let mut buffer = MaybeUninit::uninit();
-
-        match self.async_read(core::slice::from_mut(&mut buffer)).await {
-            Ok(0) => Ok(None),
-            Ok(1) => Ok(Some(unsafe { buffer.assume_init() })),
-            Ok(_) => unsafe { core::hint::unreachable_unchecked() },
-            Err(e) => Err(e),
-        }
+    pub fn async_read_one(self) -> futures::ReadOne {
+        futures::ReadOne(self)
     }
 
     /// Performs a single read in the provided buffer's spare capacity.
@@ -229,18 +222,11 @@ impl Fd {
     }
 
     /// Like [`read_once_to_vec`](Self::read_once_to_vec), but async.
-    #[cfg(feature = "futures")]
+    #[cfg(all(feature = "futures", feature = "alloc"))]
     #[doc(alias = "read")]
     #[inline]
-    pub async fn async_read_once_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> Result<usize> {
-        let spare_cap = vec.spare_capacity_mut();
-        match self.async_read(spare_cap).await {
-            Ok(count) => {
-                unsafe { vec.set_len(vec.len() + count) };
-                Ok(count)
-            }
-            Err(e) => Err(e),
-        }
+    pub fn async_read_once_to_vec(self, buf: &mut alloc::vec::Vec<u8>) -> futures::ReadOnceToVec {
+        futures::ReadOnceToVec { fd: self, buf }
     }
 
     /// Reads the contents of the whole file until end-of-file or until an error occurs.
@@ -268,22 +254,57 @@ impl Fd {
     /// Like [`read_to_vec`](Self::read_to_vec), but async.
     #[cfg(feature = "futures")]
     #[doc(alias = "read")]
-    pub async fn async_read_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> Result<()> {
-        let mut batch_size = 64;
+    pub fn async_read_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> futures::ReadToVec {
+        futures::ReadToVec::new(self, vec)
+    }
 
-        // Read the whole file into a vector.
-        loop {
-            if vec.spare_capacity_mut().len() < batch_size && vec.try_reserve(batch_size).is_err() {
-                break Err(Errno::NOMEM);
+    /// Attempts to perform a write on this file descriptor.
+    ///
+    /// If the operation would block, this function returns `Pending` and schedules the current
+    /// task to be woken up when the file descriptor is ready for writing.
+    #[cfg(feature = "rt-single-thread")]
+    pub fn poll_write(
+        self,
+        data: &[u8],
+        cx: &mut core::task::Context,
+    ) -> core::task::Poll<Result<usize>> {
+        match self.write(data) {
+            Ok(count) => core::task::Poll::Ready(Ok(count)),
+            Err(Errno::WOULDBLOCK) => {
+                match crate::runtime::wake_me_up_on_io(
+                    crate::fd::poll::PollFd::new(self, crate::fd::poll::PollFlags::OUT),
+                    cx.waker().clone(),
+                ) {
+                    Ok(()) => core::task::Poll::Pending,
+                    Err(err) => core::task::Poll::Ready(Err(err.into())),
+                }
             }
+            Err(err) => core::task::Poll::Ready(Err(err)),
+        }
+    }
 
-            match self.async_read_once_to_vec(vec).await {
-                Ok(0) => break Ok(()),
-                Ok(_) => {}
-                Err(e) => break Err(e),
+    /// Attempts to perform a read on this file descriptor.
+    ///
+    /// If the operation would block, this function returns `Pending` and schedules the current
+    /// task to be woken up when the file descriptor is ready for reading.
+    #[cfg(feature = "rt-single-thread")]
+    pub fn poll_read(
+        self,
+        data: &mut [MaybeUninit<u8>],
+        cx: &mut core::task::Context,
+    ) -> core::task::Poll<Result<usize>> {
+        match self.read(data) {
+            Ok(count) => core::task::Poll::Ready(Ok(count)),
+            Err(Errno::WOULDBLOCK) => {
+                match crate::runtime::wake_me_up_on_io(
+                    crate::fd::poll::PollFd::new(self, crate::fd::poll::PollFlags::IN),
+                    cx.waker().clone(),
+                ) {
+                    Ok(()) => core::task::Poll::Pending,
+                    Err(err) => core::task::Poll::Ready(Err(err.into())),
+                }
             }
-
-            batch_size = batch_size.saturating_mul(2);
+            Err(err) => core::task::Poll::Ready(Err(err)),
         }
     }
 }
