@@ -154,6 +154,17 @@ pub fn wake_me_up_on_time(at: Instant, waker: Waker) -> Result<(), OutOfMemory> 
     unsafe { WAKER.update(move |w| w.wake_me_up_on_time(at, waker)) }
 }
 
+/// Clears the runtime.
+///
+/// This removes all tasks and wakers from the runtime. Pending tasks are dropped, and wakers
+/// are consumed.
+pub fn clear() {
+    unsafe {
+        TASKS.update(|tasks| tasks.clear());
+        WAKER.update(|waker| waker.clear());
+    }
+}
+
 /// Wakes a task up manually.
 ///
 /// If the provided task does not exist, or if it isn't pending, this function does nothing.

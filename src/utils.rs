@@ -41,9 +41,9 @@ impl core::fmt::Display for DisplayBytes {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let mut bytes = &self.0;
 
-        while bytes.is_empty() {
+        while !bytes.is_empty() {
             match core::str::from_utf8(bytes) {
-                Ok(s) => return s.fmt(f),
+                Ok(s) => return core::fmt::Display::fmt(s, f),
                 Err(e) => {
                     let valid_until = e.valid_up_to();
                     let unknown_from = valid_until + e.error_len().unwrap_or_default();

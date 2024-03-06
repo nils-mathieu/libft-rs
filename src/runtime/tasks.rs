@@ -59,6 +59,14 @@ impl<'a> Tasks<'a> {
         }
     }
 
+    /// Clears the list of tasks.
+    pub fn clear(&mut self) {
+        self.tasks.clear();
+        self.free_list_head = usize::MAX;
+        self.ready_list_head = usize::MAX;
+        self.len = 0;
+    }
+
     /// Returns the number of tasks in the list.
     #[inline]
     pub fn len(&self) -> usize {

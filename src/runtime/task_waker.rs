@@ -63,6 +63,13 @@ impl TaskWaker {
         }
     }
 
+    /// Clears the list of wakers and I/O events.
+    pub fn clear(&mut self) {
+        self.io.clear();
+        self.io_wakers.clear();
+        self.sleepers.clear();
+    }
+
     /// Requests a wake up when the provided `PollFd` instance becomes ready.
     pub fn wake_me_up_on_io(&mut self, fd: PollFd, waker: Waker) -> Result<(), OutOfMemory> {
         self.io.try_reserve(1)?;

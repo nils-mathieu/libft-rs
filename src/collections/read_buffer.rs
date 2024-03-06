@@ -50,6 +50,13 @@ pub struct ReadBuffer {
 unsafe impl Send for ReadBuffer {}
 unsafe impl Sync for ReadBuffer {}
 
+impl Default for ReadBuffer {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ReadBuffer {
     /// Creates a new [`ReadBuffer`] instance.
     pub const fn new() -> Self {
