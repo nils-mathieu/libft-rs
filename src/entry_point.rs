@@ -1,5 +1,48 @@
 //! Provides way to safely declare an entry point for the program.
 
+use core::ffi::c_int;
+
+/// Types that can be used as the output of the `main` function.
+pub trait Terminate {
+    /// Turns the value into the exit code of the program.
+    fn terminate(self) -> c_int;
+}
+
+impl Terminate for c_int {
+    #[inline]
+    fn terminate(self) -> c_int {
+        self
+    }
+}
+
+impl Terminate for u8 {
+    #[inline]
+    fn terminate(self) -> c_int {
+        self as c_int
+    }
+}
+
+impl Terminate for () {
+    #[inline]
+    fn terminate(self) -> c_int {
+        0
+    }
+}
+
+impl<A, B> Terminate for Result<A, B>
+where
+    A: Terminate,
+    B: Terminate,
+{
+    #[inline]
+    fn terminate(self) -> c_int {
+        match self {
+            Ok(ok) => ok.terminate(),
+            Err(err) => err.terminate(),
+        }
+    }
+}
+
 /// Declares an entry point for the program.
 ///
 /// This macro adds a `main` function with the appropriate signature and link name to the
@@ -17,7 +60,8 @@
 /// The second argument is the `envp` array, which contains the environment variables passed
 /// to the program.
 ///
-/// The return value of the entry point function is the exit code of the program.
+/// The return value of the entry point function can be anything that implements the [`Terminate`]
+/// trait.
 ///
 /// # Examples
 ///

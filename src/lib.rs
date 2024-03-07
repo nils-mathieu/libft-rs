@@ -16,7 +16,6 @@ extern crate alloc;
 #[cfg(feature = "alloc")]
 mod alloc_ext;
 mod ctor;
-mod entry_point;
 mod errno;
 #[cfg(feature = "restrict-functions")]
 mod fake_libc;
@@ -34,6 +33,7 @@ pub mod charstar;
 #[cfg(feature = "collections")]
 pub mod collections;
 pub mod dylib;
+pub mod entry_point;
 pub mod fd;
 #[cfg(feature = "futures")]
 pub mod futures;
