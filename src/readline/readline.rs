@@ -21,7 +21,7 @@ pub struct Readline {
 }
 
 impl Readline {
-    /// Creates a new instance of [`ReadlineState`].
+    /// Creates a new instance of [`Readline`].
     pub const fn new() -> Self {
         Self {
             input: Fd::STDIN,
@@ -47,12 +47,20 @@ impl Readline {
 
     /// Adds a command-line to the history.
     pub fn history_add(&mut self, cmdline: &str) -> Result<(), OutOfMemory> {
+        if self.history.last().map(Box::as_ref) == Some(cmdline) {
+            return Ok(());
+        }
+
         self.history.try_push(box_str(cmdline)?)?;
         Ok(())
     }
 
     /// Adds the current command-line buffer to the history.
     pub fn history_add_buffer(&mut self) -> Result<(), OutOfMemory> {
+        if self.history.last().map(Box::as_ref) == Some(self.cmdline.buffer()) {
+            return Ok(());
+        }
+
         self.history.try_push(box_str(self.cmdline.buffer())?)?;
         Ok(())
     }
