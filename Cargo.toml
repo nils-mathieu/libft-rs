@@ -14,8 +14,10 @@ default = [
     "alloc",
     "rt-single-thread",
     "futures",
+    "readline",
 ]
 
+readline = ["dep:unicode-width"]
 panic-handler = []
 panic-eh-personality = []
 global-allocator = []
@@ -30,3 +32,4 @@ restrict-errno = []
 [dependencies]
 libc = { version = "0.2", default-features = false }
 bitflags = "2"
+unicode-width = { version = "0.1", optional = true }

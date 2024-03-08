@@ -45,11 +45,29 @@ impl<T> SafeVecExt for Vec<T> {
 /// An extension trait for [`String`] that defines non-panicking methods
 /// for adding elements to the string.
 pub trait SafeStringExt {
+    /// Attempts to push a string slice into the string without panicking.
+    fn try_push_str(&mut self, s: &str) -> Result<(), OutOfMemory>;
+
+    /// Attempts to push a character into the string without panicking.
+    fn try_push(&mut self, c: char) -> Result<(), OutOfMemory>;
+
     /// Attempts to push a string slice into the string.
     fn try_write_fmt(&mut self, args: core::fmt::Arguments<'_>) -> core::fmt::Result;
 }
 
 impl SafeStringExt for String {
+    fn try_push(&mut self, c: char) -> Result<(), OutOfMemory> {
+        self.try_reserve(c.len_utf8()).map_err(|_| OutOfMemory)?;
+        self.push(c);
+        Ok(())
+    }
+
+    fn try_push_str(&mut self, s: &str) -> Result<(), OutOfMemory> {
+        self.try_reserve(s.len()).map_err(|_| OutOfMemory)?;
+        self.push_str(s);
+        Ok(())
+    }
+
     fn try_write_fmt(&mut self, args: core::fmt::Arguments<'_>) -> core::fmt::Result {
         struct Wrapper(String);
 
@@ -61,18 +79,14 @@ impl SafeStringExt for String {
         }
 
         impl core::fmt::Write for Wrapper {
+            #[inline]
             fn write_str(&mut self, s: &str) -> core::fmt::Result {
-                self.0.try_reserve(s.len()).map_err(|_| core::fmt::Error)?;
-                self.0.push_str(s);
-                Ok(())
+                self.0.try_push_str(s).map_err(|_| core::fmt::Error)
             }
 
+            #[inline]
             fn write_char(&mut self, c: char) -> core::fmt::Result {
-                self.0
-                    .try_reserve(c.len_utf8())
-                    .map_err(|_| core::fmt::Error)?;
-                self.0.push(c);
-                Ok(())
+                self.0.try_push(c).map_err(|_| core::fmt::Error)
             }
         }
 

@@ -10,6 +10,7 @@
 #![feature(allocator_api)]
 #![feature(const_binary_heap_constructor)]
 #![feature(never_type)]
+#![feature(result_flattening)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -42,6 +43,8 @@ pub mod malloc;
 pub mod mmap;
 pub mod net;
 pub mod process;
+#[cfg(feature = "readline")]
+pub mod readline;
 #[cfg(feature = "rt-single-thread")]
 pub mod runtime;
 pub mod sync;

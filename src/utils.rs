@@ -1,6 +1,12 @@
 use core::fmt::Write;
 use core::mem::ManuallyDrop;
 
+use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
+
+use crate::malloc::OutOfMemory;
+
 /// See [`display_bytes`].
 #[repr(transparent)]
 pub struct DisplayBytes([u8]);
@@ -109,4 +115,20 @@ impl<T, F: FnOnce(T)> Drop for Guard<T, F> {
             destructor(value);
         }
     }
+}
+
+/// Allocates the provided string on the heap and returns a box to it.
+pub fn box_str(s: &str) -> Result<Box<str>, OutOfMemory> {
+    let mut string = String::new();
+    string.try_reserve_exact(s.len())?;
+    string.push_str(s);
+    Ok(string.into_boxed_str())
+}
+
+/// Allocates the provided slice on the heap and returns a box to it.
+pub fn box_slice<T: Clone>(s: &[T]) -> Result<Box<[T]>, OutOfMemory> {
+    let mut vec = Vec::new();
+    vec.try_reserve_exact(s.len())?;
+    vec.extend_from_slice(s);
+    Ok(vec.into_boxed_slice())
 }
