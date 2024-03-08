@@ -6,6 +6,7 @@ mod signal;
 pub use self::pid::*;
 pub use self::signal::*;
 
+use crate::CharStar;
 use crate::{Errno, Result};
 
 /// Aborts the current process.
@@ -43,4 +44,34 @@ pub fn fork() -> Result<Fork> {
         0 => Ok(Fork::Child),
         pid => Ok(Fork::Parent(Pid::from_raw(pid))),
     }
+}
+
+/// Replace the current process with a new one.
+///
+/// # Arguments
+///
+/// * `path` - The path to the new process image.
+///
+/// * `args` - The arguments to pass to the new process.
+///
+/// * `envp` - The environment variables to pass to the new process.
+///
+/// # Safety
+///
+/// `args` must be a null-terminated array of null-terminated strings.
+///
+/// `envp` must be a null-terminated array of null-terminated strings.
+///
+/// # Returns
+///
+/// On success, this function does not return. On error, it returns the error code.
+#[inline]
+#[doc(alias = "execve")]
+pub unsafe fn exec(
+    path: &CharStar,
+    args: *const *const CharStar,
+    envp: *const *const CharStar,
+) -> Result<!> {
+    unsafe { libc::execve(path.as_ptr(), args.cast(), envp.cast()) };
+    Err(Errno::last())
 }

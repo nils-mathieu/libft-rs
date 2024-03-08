@@ -9,6 +9,7 @@
 #![feature(thread_local)]
 #![feature(allocator_api)]
 #![feature(const_binary_heap_constructor)]
+#![feature(never_type)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
