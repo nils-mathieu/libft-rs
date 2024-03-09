@@ -3,6 +3,7 @@
 
 mod cmdline;
 mod non_canonical;
+#[allow(clippy::module_inception)]
 mod readline;
 
 pub use self::cmdline::*;

@@ -1,12 +1,17 @@
 //! Provides functions to work with C-like strings.
 
+use core::borrow::{Borrow, BorrowMut};
 use core::ffi::{c_char, c_int};
 use core::fmt;
 use core::iter::FusedIterator;
+use core::ops::{Deref, DerefMut};
+use core::ptr::NonNull;
 
 #[cfg(feature = "restrict-functions")]
 use crate::fake_libc as c;
+use crate::malloc::OutOfMemory;
 use crate::utils::display_bytes;
+use alloc::borrow::ToOwned;
 #[cfg(not(feature = "restrict-functions"))]
 use libc as c;
 
@@ -355,5 +360,94 @@ impl<'a> Iterator for Split<'a> {
         let (init, rest) = self.charstar.split_at_char(self.byte)?;
         self.charstar = rest;
         Some(init)
+    }
+}
+
+impl ToOwned for CharStar {
+    type Owned = CharStarBox;
+
+    #[inline]
+    fn to_owned(&self) -> Self::Owned {
+        CharStarBox::from_bytes(self.as_bytes()).unwrap()
+    }
+}
+
+/// A heap-allocated [`CharStar`].
+#[repr(transparent)]
+pub struct CharStarBox(NonNull<CharStar>);
+
+impl CharStarBox {
+    /// Copies the provided bytes to the heap and returns a [`CharStarBox`] containing
+    /// the resulting string.
+    ///
+    /// This function assumes that the provided bytes do not include a null byte, but it is
+    /// not invalid to provide a null byte. The end of the string will simply be skipped.
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, OutOfMemory> {
+        let p = crate::malloc::allocate(bytes.len() + 1)?;
+
+        unsafe {
+            p.as_ptr()
+                .cast::<u8>()
+                .copy_from(bytes.as_ptr(), bytes.len());
+            p.as_ptr().cast::<u8>().add(bytes.len()).write(0);
+
+            Ok(Self(NonNull::new_unchecked(p.as_ptr() as *mut CharStar)))
+        }
+    }
+}
+
+impl Clone for CharStarBox {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self::from_bytes(self.as_bytes()).unwrap()
+    }
+}
+
+impl Deref for CharStarBox {
+    type Target = CharStar;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        unsafe { self.0.as_ref() }
+    }
+}
+
+impl DerefMut for CharStarBox {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { self.0.as_mut() }
+    }
+}
+
+impl Drop for CharStarBox {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { crate::malloc::deallocate(self.0.cast()) }
+    }
+}
+
+impl Borrow<CharStar> for CharStarBox {
+    #[inline]
+    fn borrow(&self) -> &CharStar {
+        self
+    }
+}
+
+impl BorrowMut<CharStar> for CharStarBox {
+    #[inline]
+    fn borrow_mut(&mut self) -> &mut CharStar {
+        self
+    }
+}
+
+impl fmt::Debug for CharStarBox {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&**self, f)
+    }
+}
+
+impl fmt::Display for CharStarBox {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&**self, f)
     }
 }
