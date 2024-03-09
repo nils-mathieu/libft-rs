@@ -9,7 +9,7 @@ bitflags! {
     /// Flags that can be passed to [`Fd::open`].
     ///
     /// Describes how the file should be opened.
-    #[derive(Clone, Copy, Default, PartialEq, Eq)]
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     pub struct OpenFlags: c_int {
         /// The file should be opened for reading only.
         const READ_ONLY = libc::O_RDONLY;
@@ -30,7 +30,7 @@ bitflags! {
 
 bitflags! {
     /// The mode of a file.
-    #[derive(Clone, Copy, Default, PartialEq, Eq)]
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     pub struct Mode: libc::mode_t {
         /// The file can be read by the owner.
         const OWNER_READ = libc::S_IRUSR;
@@ -50,6 +50,19 @@ bitflags! {
         const OTHER_WRITE = libc::S_IWOTH;
         /// The file can be executed by others.
         const OTHER_EXECUTE = libc::S_IXOTH;
+    }
+}
+
+impl Mode {
+    /// Makes the current process's file creation mask equal to this mode.
+    ///
+    /// # Returns
+    ///
+    /// The previous file creation mask.
+    #[inline]
+    pub fn make_current(self) -> Self {
+        let old = unsafe { libc::umask(self.bits()) };
+        Self::from_bits_retain(old)
     }
 }
 
