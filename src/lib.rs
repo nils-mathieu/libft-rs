@@ -57,7 +57,7 @@ pub use self::errno::{Errno, Result};
 pub use self::fd::{Fd, File};
 pub use self::memchr_ext::*;
 pub use self::misc::*;
-#[cfg(feature = "panic-handler")]
+#[cfg(all(feature = "panic-handler", not(test)))]
 pub use self::panic_handler::set_panic_handler;
 pub use self::process::{Pid, Signal};
 pub use self::sync::mutex::Mutex;
@@ -66,15 +66,3 @@ pub use self::user::*;
 
 #[doc(hidden)]
 pub mod __private;
-
-// #[cfg(feature = "panic-eh-personality")]
-// #[lang = "eh_personality"]
-// extern "C" fn eh_personality() -> ! {
-//     unreachable!();
-// }
-//
-// #[cfg(feature = "panic-eh-personality")]
-// #[no_mangle]
-// extern "C-unwind" fn _Unwind_Resume() -> ! {
-//     unreachable!();
-// }
