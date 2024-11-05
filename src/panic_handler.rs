@@ -11,10 +11,7 @@ use crate::eprintf;
 fn default_panic_handler(info: &PanicInfo) -> ! {
     eprintf!("\x1B[1;31mpanic\x1B[0m: ");
 
-    match info.message() {
-        Some(msg) => eprintf!("{}", msg),
-        None => eprintf!("no further information"),
-    }
+    eprintf!("{}", info.message());
 
     if let Some(loc) = info.location() {
         eprintf!(" (at {}:{})", loc.file(), loc.line());

@@ -3,12 +3,11 @@
 #![no_std]
 #![allow(internal_features)]
 #![forbid(unsafe_op_in_unsafe_fn)]
-#![feature(extern_types, panic_info_message)]
+#![feature(extern_types)]
 #![feature(slice_ptr_get)]
 #![feature(lang_items)]
 #![feature(thread_local)]
 #![feature(allocator_api)]
-#![feature(const_binary_heap_constructor)]
 #![feature(never_type)]
 #![feature(result_flattening)]
 
