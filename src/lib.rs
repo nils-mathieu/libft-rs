@@ -67,14 +67,14 @@ pub use self::user::*;
 #[doc(hidden)]
 pub mod __private;
 
-#[cfg(feature = "panic-eh-personality")]
-#[lang = "eh_personality"]
-extern "C" fn eh_personality() -> ! {
-    unreachable!();
-}
-
-#[cfg(feature = "panic-eh-personality")]
-#[no_mangle]
-extern "C-unwind" fn _Unwind_Resume() -> ! {
-    unreachable!();
-}
+// #[cfg(feature = "panic-eh-personality")]
+// #[lang = "eh_personality"]
+// extern "C" fn eh_personality() -> ! {
+//     unreachable!();
+// }
+//
+// #[cfg(feature = "panic-eh-personality")]
+// #[no_mangle]
+// extern "C-unwind" fn _Unwind_Resume() -> ! {
+//     unreachable!();
+// }

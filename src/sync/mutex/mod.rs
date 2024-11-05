@@ -107,6 +107,27 @@ pub struct MutexGuard<'a, T: ?Sized, M: RawMutex> {
     data: &'a mut T,
 }
 
+impl<'a, T: ?Sized, M: RawMutex> MutexGuard<'a, T, M> {
+    /// Leaks the guard, returning a mutable reference to the locked data without releasing the
+    /// lock.
+    pub fn leak(self) -> &'a mut T {
+        let this = core::mem::ManuallyDrop::new(self);
+        unsafe { core::ptr::read(&this.data) }
+    }
+
+    /// Maps the guard's content to a new value, keeping the lock intact.
+    pub fn map<U: ?Sized, F: FnOnce(&mut T) -> &mut U>(self, f: F) -> MutexGuard<'a, U, M> {
+        let this = core::mem::ManuallyDrop::new(self);
+        let mutex = this.mutex;
+        let data = unsafe { core::ptr::read(&this.data) };
+
+        MutexGuard {
+            mutex,
+            data: f(data),
+        }
+    }
+}
+
 impl<T: ?Sized, M: RawMutex> Deref for MutexGuard<'_, T, M> {
     type Target = T;
 
