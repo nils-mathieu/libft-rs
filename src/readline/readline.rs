@@ -20,6 +20,13 @@ pub struct Readline {
     cmdline: Cmdline,
 }
 
+impl Default for Readline {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Readline {
     /// Creates a new instance of [`Readline`].
     pub const fn new() -> Self {

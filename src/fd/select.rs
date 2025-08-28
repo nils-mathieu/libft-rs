@@ -10,6 +10,13 @@ use crate::{Errno, Fd, Result};
 #[doc(alias = "ft_set")]
 pub struct FdSet(libc::fd_set);
 
+impl Default for FdSet {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FdSet {
     /// Creates a new, empty, [`FdSet`] instance.
     pub const fn new() -> Self {
@@ -74,7 +81,7 @@ impl FdSet {
     ///
     /// - `max` - The file descriptor of the file descriptor with the highest numerical value.
     ///   This can also be used to selectively ignore the file descriptors with a higher number.
-    pub fn iter(&self, max: Fd) -> FdSetIter {
+    pub fn iter<'a>(&'a self, max: Fd) -> FdSetIter<'a> {
         FdSetIter {
             set: self,
             range: 0..max.to_raw().wrapping_add(1),

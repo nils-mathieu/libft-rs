@@ -261,7 +261,7 @@ impl ReadBuffer {
     /// This function assumes that the provided file descriptor is non-blocking.
     #[inline]
     #[cfg(feature = "futures")]
-    pub fn async_fill_with_fd(&mut self, fd: Fd) -> futures::FillWithFd {
+    pub fn async_fill_with_fd<'a>(&'a mut self, fd: Fd) -> futures::FillWithFd<'a> {
         futures::FillWithFd { buf: self, fd }
     }
 
@@ -338,7 +338,7 @@ impl ReadBuffer {
     /// This function assumes that the provided file descriptor is non-blocking.
     #[inline]
     #[cfg(feature = "futures")]
-    pub fn async_read_exact(&mut self, fd: Fd, count: usize) -> futures::ReadExact {
+    pub fn async_read_exact<'a>(&'a mut self, fd: Fd, count: usize) -> futures::ReadExact<'a> {
         futures::ReadExact::new(fd, self, count)
     }
 }

@@ -68,7 +68,7 @@ impl Fd {
     #[inline]
     #[cfg(feature = "futures")]
     #[doc(alias = "write")]
-    pub fn async_write(self, data: &[u8]) -> futures::Write {
+    pub fn async_write<'a>(self, data: &'a [u8]) -> futures::Write<'a> {
         futures::Write { fd: self, data }
     }
 
@@ -94,7 +94,7 @@ impl Fd {
     #[inline]
     #[cfg(feature = "futures")]
     #[doc(alias = "write")]
-    pub fn async_write_all(self, data: &[u8]) -> futures::WriteAll {
+    pub fn async_write_all<'a>(self, data: &'a [u8]) -> futures::WriteAll<'a> {
         futures::WriteAll { fd: self, data }
     }
 
@@ -173,7 +173,7 @@ impl Fd {
     #[inline]
     #[cfg(feature = "futures")]
     #[doc(alias = "read")]
-    pub fn async_read(self, buf: &mut [MaybeUninit<u8>]) -> futures::Read {
+    pub fn async_read<'a>(self, buf: &'a mut [MaybeUninit<u8>]) -> futures::Read<'a> {
         futures::Read { fd: self, buf }
     }
 
@@ -225,7 +225,10 @@ impl Fd {
     #[cfg(all(feature = "futures", feature = "alloc"))]
     #[doc(alias = "read")]
     #[inline]
-    pub fn async_read_once_to_vec(self, buf: &mut alloc::vec::Vec<u8>) -> futures::ReadOnceToVec {
+    pub fn async_read_once_to_vec<'a>(
+        self,
+        buf: &'a mut alloc::vec::Vec<u8>,
+    ) -> futures::ReadOnceToVec<'a> {
         futures::ReadOnceToVec { fd: self, buf }
     }
 
@@ -254,7 +257,7 @@ impl Fd {
     /// Like [`read_to_vec`](Self::read_to_vec), but async.
     #[cfg(feature = "futures")]
     #[doc(alias = "read")]
-    pub fn async_read_to_vec(self, vec: &mut alloc::vec::Vec<u8>) -> futures::ReadToVec {
+    pub fn async_read_to_vec<'a>(self, vec: &'a mut alloc::vec::Vec<u8>) -> futures::ReadToVec<'a> {
         futures::ReadToVec::new(self, vec)
     }
 

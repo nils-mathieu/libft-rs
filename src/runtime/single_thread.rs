@@ -1,5 +1,5 @@
 use alloc::boxed::Box;
-use core::cell::{Cell, UnsafeCell};
+use core::cell::UnsafeCell;
 use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, Waker};
@@ -17,7 +17,8 @@ struct UnsafeRefCell<T> {
     /// The protected value.
     value: UnsafeCell<T>,
     /// Whether the cell is currently borrowed.
-    borrowed: Cell<bool>,
+    #[cfg(debug_assertions)]
+    borrowed: core::cell::Cell<bool>,
 }
 
 impl<T> UnsafeRefCell<T> {
@@ -26,7 +27,8 @@ impl<T> UnsafeRefCell<T> {
     pub const fn new(val: T) -> Self {
         Self {
             value: UnsafeCell::new(val),
-            borrowed: Cell::new(false),
+            #[cfg(debug_assertions)]
+            borrowed: core::cell::Cell::new(false),
         }
     }
 

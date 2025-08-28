@@ -5,11 +5,9 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 #![feature(extern_types)]
 #![feature(slice_ptr_get)]
-#![feature(lang_items)]
 #![feature(thread_local)]
 #![feature(allocator_api)]
 #![feature(never_type)]
-#![feature(result_flattening)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;

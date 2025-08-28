@@ -163,7 +163,7 @@ impl Termios {
     ///
     /// When the guard is dropped, the original [`Termios`] structure is restored.
     #[inline]
-    pub fn guard(&self, fd: Fd) -> RestoreTermios {
+    pub fn guard(&self, fd: Fd) -> RestoreTermios<'_> {
         RestoreTermios { fd, termios: self }
     }
 

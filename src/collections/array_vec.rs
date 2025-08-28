@@ -12,6 +12,13 @@ pub struct ArrayVec<T, const N: usize> {
     init: u8,
 }
 
+impl<T, const N: usize> Default for ArrayVec<T, N> {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T, const N: usize> ArrayVec<T, N> {
     /// Creates a new [`ArrayVec`] instance.
     pub const fn new() -> Self {

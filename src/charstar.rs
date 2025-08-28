@@ -230,14 +230,14 @@ impl CharStar {
 
     /// Creates an iterator over the bytes of the string.
     #[inline]
-    pub fn iter(&self) -> Iter {
+    pub fn iter(&self) -> Iter<'_> {
         self.into_iter()
     }
 
     /// Split the string using the provided byte delimiter, returning an iterator
     /// over the resulting substrings.
     #[inline]
-    pub fn split(&self, byte: u8) -> Split {
+    pub fn split(&self, byte: u8) -> Split<'_> {
         Split {
             charstar: self,
             byte,
