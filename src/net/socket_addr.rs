@@ -158,10 +158,9 @@ fn format_ipv6(ip: [u8; 16], port: u16, f: &mut fmt::Formatter) -> fmt::Result {
     let mut best = 0..0;
 
     let mut i = 0;
-    let mut current_start = 0;
     while i < 8 {
         if ip[i] == 0 {
-            current_start = i;
+            let current_start = i;
 
             while i < 8 && ip[i] == 0 {
                 i += 1;
@@ -173,7 +172,6 @@ fn format_ipv6(ip: [u8; 16], port: u16, f: &mut fmt::Formatter) -> fmt::Result {
         }
 
         i += 1;
-        current_start += 1;
     }
 
     // Write the address.

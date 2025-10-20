@@ -34,17 +34,10 @@ macro_rules! charstar {
     };
 }
 
-extern "C" {
-    /// This type is the only thing that [`CharStar`] contains. It ensures that the
-    /// type cannot be constructed on the stack (because it has no fixed size). Instead,
-    /// its size is derived from the pointer it is constructed from.
-    type Unsized;
-}
-
 /// Represents a C-like string (null-terminated array of bytes).
 #[repr(transparent)]
 #[doc(alias = "char*")]
-pub struct CharStar(Unsized);
+pub struct CharStar(());
 
 unsafe impl Sync for CharStar {}
 unsafe impl Send for CharStar {}

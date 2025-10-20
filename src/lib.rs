@@ -3,7 +3,6 @@
 #![no_std]
 #![allow(internal_features)]
 #![forbid(unsafe_op_in_unsafe_fn)]
-#![feature(extern_types)]
 #![feature(slice_ptr_get)]
 #![feature(thread_local)]
 #![feature(allocator_api)]
